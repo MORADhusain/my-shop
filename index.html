@@ -5,35 +5,234 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MH Ultimate Shop</title>
     <style>
-        :root { --primary: #ff4757; --secondary: #2f3542; --success: #2ed573; --white: #ffffff; --bg: #f1f2f6; }
+        :root { --primary: #ff4757; --secondary: #2f3542; --success: #2ed573; --white: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; }
-        body { background-color: var(--bg); color: var(--secondary); }
+        body { background: #f4f6f9; color: var(--secondary); overflow-x: hidden; }
 
-        /* হেডার */
-        header { background: var(--white); padding: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 22px; font-weight: bold; color: var(--primary); text-transform: uppercase; }
-        .cart-btn { background: var(--primary); color: white; padding: 8px 18px; border-radius: 25px; border: none; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; gap: 5px; }
+        /* কভার ফটো */
+        .cover-photo { width: 100%; height: 250px; object-fit: cover; border-bottom: 4px solid var(--primary); }
 
-        /* অ্যানিমেটেড নোটিশ বক্স */
-        .notice-box { margin: 15px; background: #fff; padding: 10px; border-radius: 8px; border: 2px solid var(--primary); box-shadow: 0 0 10px rgba(255, 71, 87, 0.3); overflow: hidden; position: relative; }
-        .marquee-text { white-space: nowrap; display: inline-block; animation: scroll 15s linear infinite; color: #333; font-weight: bold; font-size: 14px; }
+        header { background: var(--white); padding: 15px; position: sticky; top: 0; z-index: 1000; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary); }
+        .cart-btn { background: var(--primary); color: white; padding: 8px 15px; border-radius: 20px; border: none; cursor: pointer; font-weight: bold; position: relative; }
+        .cart-count { position: absolute; top: -5px; right: -5px; background: black; color: white; border-radius: 50%; padding: 2px 6px; font-size: 10px; }
+
+        /* স্লো অ্যানিমেটেড নোটিশ */
+        .notice-container { margin: 15px; border: 2px solid var(--primary); border-radius: 10px; overflow: hidden; background: white; padding: 10px; }
+        .marquee { white-space: nowrap; animation: scroll 25s linear infinite; display: inline-block; font-weight: bold; color: #333; }
         @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* গ্রিড ও কার্ড */
-        .container { padding: 10px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #eee; display: flex; flex-direction: column; transition: 0.3s; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
-        .card img { width: 100%; height: 160px; object-fit: cover; background: #f9f9f9; }
-        .info { padding: 12px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; }
-        .info h3 { font-size: 14px; margin-bottom: 8px; color: #444; height: 40px; overflow: hidden; line-height: 1.4; }
-        .price { color: var(--primary); font-weight: 800; font-size: 17px; margin-bottom: 12px; display: block; }
-        
-        .buy-btn { background: var(--success); color: white; border: none; padding: 10px; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: bold; margin-bottom: 5px; width: 100%; }
-        .add-btn { background: #f1f2f6; color: #555; border: none; padding: 9px; border-radius: 8px; font-size: 12px; cursor: pointer; width: 100%; }
+        /* পণ্য কার্ড */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px; }
+        .card { background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; border: 1px solid #eee; }
+        .card img { width: 100%; height: 150px; object-fit: cover; cursor: pointer; }
+        .info { padding: 10px; text-align: center; }
+        .price { color: var(--primary); font-weight: bold; font-size: 18px; margin: 5px 0; display: block; }
+        .btn-box { display: flex; flex-direction: column; gap: 5px; }
+        .buy-btn { background: var(--success); color: white; border: none; padding: 8px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        .add-btn { background: #f1f2f6; border: none; padding: 8px; border-radius: 8px; font-size: 12px; cursor: pointer; }
 
         /* ডায়ালগ ও ওভারলে */
-        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 2000; overflow-y: auto; align-items: flex-start; justify-content: center; padding: 20px 0; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2000; overflow-y: auto; align-items: center; justify-content: center; padding: 20px; }
+        .modal { background: white; border-radius: 20px; padding: 20px; width: 100%; max-width: 450px; position: relative; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 25px; cursor: pointer; }
+
+        /* কার্ট আইটেম ডিজাইন */
+        .cart-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .cart-item img { width: 50px; height: 50px; border-radius: 5px; }
+        .cart-item-info { flex-grow: 1; text-align: left; }
+        .cart-item-btns { display: flex; flex-direction: column; gap: 4px; }
+        .item-order-btn { background: var(--success); color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+        .item-del-btn { background: #ff4757; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+
+        /* ইমেজ ভিউয়ার */
+        #imgViewerContent img { width: 100%; border-radius: 10px; margin-bottom: 10px; }
+        .related-imgs { display: flex; gap: 10px; overflow-x: auto; padding-top: 10px; }
+        .related-imgs img { width: 80px; height: 80px; object-fit: cover; border-radius: 5px; }
+
+        .form-group { text-align: left; margin-bottom: 15px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; border: 1.5px solid #ddd; border-radius: 10px; margin-top: 5px; }
+        .success-card { background: #f1f9f1; padding: 15px; border-radius: 10px; text-align: left; font-size: 14px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<img src="Morad_Hasan.png" class="cover-photo" alt="Cover Photo">
+
+<header>
+    <div class="logo">MH SHOP</div>
+    <button class="cart-btn" onclick="openCart()">🛒 <span class="cart-count" id="count">0</span></button>
+</header>
+
+<div class="notice-container">
+    <div class="marquee">
+        ঢাকার ভিতরে ডেলিভারি চার্জ ৮৫ টাকা এবং ঢাকার বাহিরে ডেলিভারি চার্জ ৳১৩০ পুরো বাংলাদেশ। আপনারা আমাদের ওয়েবসাইটের পণ্যগুলো দেখুন এবং পছন্দ হলে অবশ্যই অর্ডার করুন ধন্যবাদ।
+    </div>
+</div>
+
+<div class="grid" id="productGrid">
+    <p style="text-align: center; grid-column: span 2;">পণ্য লোড হচ্ছে...</p>
+</div>
+
+<div id="cartModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h3 style="margin-bottom: 15px;">আপনার কার্ট</h3>
+        <div id="cartList"></div>
+        <div id="totalPriceBox" style="font-weight: bold; margin-top: 15px; border-top: 2px solid #eee; padding-top: 10px; text-align: right;"></div>
+    </div>
+</div>
+
+<div id="orderModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h3>অর্ডার কনফার্ম করুন</h3>
+        <div class="form-group"><input type="text" id="custName" placeholder="এখানে নাম লিখুন..."></div>
+        <div class="form-group"><input type="tel" id="custPhone" placeholder="এখানে ফোন নম্বর লিখুন..."></div>
+        <div class="form-group"><textarea id="custAddr" rows="3" placeholder="এখানে সম্পূর্ণ ঠিকানা লিখুন..."></textarea></div>
+        <p style="font-size: 12px; color: red; margin-bottom: 10px;">ডেলিভারি চার্জ: ঢাকা ৮৫৳ | বাইরে ১৩০৳</p>
+        <button class="buy-btn" style="width: 100%; padding: 15px;" onclick="submitOrder()">অর্ডার সাবমিট</button>
+    </div>
+</div>
+
+<div id="imgModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <div id="imgViewerContent"></div>
+        <div class="related-imgs" id="relatedImgs"></div>
+    </div>
+</div>
+
+<div id="successModal" class="overlay">
+    <div class="modal">
+        <h2 style="color: var(--success);">✓ মাশাল্লাহ!</h2>
+        <p>আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।</p>
+        <div class="success-card" id="successDetail"></div>
+        <button class="buy-btn" style="width: 100%; margin-top: 20px;" onclick="window.location.reload()">হোম পেজে ফিরুন</button>
+    </div>
+</div>
+
+<script>
+    const botToken = "8056895902:AAECIwrBgeAzyUjZPpQ3A4Ku9fDCwv7CQPo";
+    const chatId = "7211983994";
+    const githubUser = "moradhusain";
+    const repoName = "my-shop";
+    
+    let cart = [];
+    let currentOrder = [];
+
+    async function loadProducts() {
+        const grid = document.getElementById('productGrid');
+        try {
+            const response = await fetch(`https://api.github.com/repos/${githubUser}/${repoName}/contents/`);
+            const files = await response.json();
+            grid.innerHTML = '';
+            files.forEach(file => {
+                if (file.name.match(/\.(jpg|jpeg|png|webp)$/i) && file.name !== "Morad_Hasan.png") {
+                    let parts = file.name.split('.')[0].split('_');
+                    let pName = parts[0] || "পণ্য";
+                    let pPrice = parts[1] || "0";
+                    grid.innerHTML += `
+                        <div class="card">
+                            <img src="${file.download_url}" onclick="viewImage('${file.download_url}', '${pName}')">
+                            <div class="info">
+                                <h3>${pName}</h3>
+                                <span class="price">৳ ${pPrice}</span>
+                                <div class="btn-box">
+                                    <button class="buy-btn" onclick="quickOrder('${pName}', '${pPrice}')">অর্ডার করুন</button>
+                                    <button class="add-btn" onclick="addToCart('${pName}', '${pPrice}', '${file.download_url}')">কার্টে রাখুন</button>
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            });
+        } catch (e) { grid.innerHTML = "লোড করতে সমস্যা হয়েছে।"; }
+    }
+
+    function addToCart(name, price, img) {
+        cart.push({name, price, img});
+        document.getElementById('count').innerText = cart.length;
+        alert("কার্টে যুক্ত হয়েছে!");
+    }
+
+    function openCart() {
+        if(cart.length === 0) return alert("কার্ট খালি!");
+        const list = document.getElementById('cartList');
+        const totalBox = document.getElementById('totalPriceBox');
+        list.innerHTML = '';
+        let total = 0;
+
+        cart.forEach((item, index) => {
+            let numPrice = parseInt(item.price.replace(/[^0-9]/g, '')) || 0;
+            total += numPrice;
+            list.innerHTML += `
+                <div class="cart-item">
+                    <img src="${item.img}">
+                    <div class="cart-item-info">
+                        <h4>${item.name}</h4>
+                        <p>৳ ${item.price}</p>
+                    </div>
+                    <div class="cart-item-btns">
+                        <button class="item-order-btn" onclick="quickOrder('${item.name}', '${item.price}')">কিনুন</button>
+                        <button class="item-del-btn" onclick="removeFromCart(${index})">ডিলিট</button>
+                    </div>
+                </div>`;
+        });
+        totalBox.innerText = `মোট পণ্য মূল্য: ৳ ${total}`;
+        document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function removeFromCart(index) {
+        cart.splice(index, 1);
+        document.getElementById('count').innerText = cart.length;
+        if(cart.length === 0) closeModals(); else openCart();
+    }
+
+    function quickOrder(name, price) {
+        currentOrder = [{name, price}];
+        closeModals();
+        document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function viewImage(url, name) {
+        document.getElementById('imgViewerContent').innerHTML = `<h4>${name}</h4><img src="${url}">`;
+        const related = document.getElementById('relatedImgs');
+        related.innerHTML = '';
+        for(let i=0; i<4; i++) {
+            related.innerHTML += `<img src="https://source.unsplash.com/featured/?${encodeURIComponent(name)},gadget&sig=${i}">`;
+        }
+        document.getElementById('imgModal').style.display = 'flex';
+    }
+
+    function closeModals() {
+        document.querySelectorAll('.overlay').forEach(el => el.style.display = 'none');
+    }
+
+    function submitOrder() {
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
+        const addr = document.getElementById('custAddr').value;
+
+        if(!name || !phone || !addr) return alert("সব তথ্য দিন!");
+
+        let itemText = currentOrder.map(i => `▫️ ${i.name} (${i.price})`).join("\n");
+        let total = currentOrder.reduce((acc, i) => acc + parseInt(i.price.replace(/[^0-9]/g, '')), 0);
+        
+        let msg = `🛍️ *নতুন অর্ডার!*\n\n👤 নাম: ${name}\n📞 ফোন: ${phone}\n🏠 ঠিকানা: ${addr}\n\n🛒 পণ্য:\n${itemText}\n💰 মোট: ৳${total}`;
+
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
+        .then(() => {
+            const detail = `<strong>নাম:</strong> ${name}<br><strong>ফোন:</strong> ${phone}<br><strong>ঠিকানা:</strong> ${addr}<br><br><strong>অর্ডারকৃত পণ্য:</strong><br>${itemText.replace(/\n/g, '<br>')}<br><br><strong>মোট মূল্য:</strong> ৳${total}`;
+            document.getElementById('successDetail').innerHTML = detail;
+            closeModals();
+            document.getElementById('successModal').style.display = 'flex';
+        });
+    }
+
+    loadProducts();
+</script>
+</body>
+</html>
         .modal { background: white; border-radius: 20px; padding: 20px; width: 90%; max-width: 450px; position: relative; margin-top: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         .close-btn { position: absolute; right: 20px; top: 15px; font-size: 28px; cursor: pointer; color: #999; }
         
