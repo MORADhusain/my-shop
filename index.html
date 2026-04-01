@@ -9,31 +9,238 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
         body { background-color: #f8f9fa; color: var(--secondary); }
 
-        /* হেডার ও সার্চ বার */
         header { background: var(--white); padding: 10px 5%; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .search-container { display: flex; gap: 5px; }
         .search-container input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-
-        /* কার্ট কাউন্টার */
         .cart-btn { background: var(--primary); color: white; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; border: none; }
 
-        /* ফিল্টার বাটন */
         .filter-section { padding: 15px; display: flex; gap: 10px; overflow-x: auto; white-space: nowrap; }
         .f-btn { padding: 10px 20px; border: none; border-radius: 25px; background: #ddd; cursor: pointer; font-weight: bold; }
         .f-btn.active { background: var(--primary); color: white; }
 
-        /* প্রোডাক্ট গ্রিড (এক লাইনে ২ টি) */
         .products { padding: 10px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; position: relative; }
+        .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; }
         .card img { width: 100%; height: 150px; object-fit: cover; }
         .info { padding: 10px; text-align: center; }
         .info h3 { font-size: 14px; margin-bottom: 5px; height: 35px; overflow: hidden; }
         .price { color: var(--primary); font-weight: bold; font-size: 16px; }
         .btn-box { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
         .add-btn { background: #eee; border: none; padding: 8px; border-radius: 5px; font-size: 12px; cursor: pointer; }
-        .buy-btn { background: var(--success); color: white; border: none; padding: 8px; border-radius: 5px; font-size: 12px; cursor: pointer; }
+        .buy-now { background: var(--success); color: white; border: none; padding: 8px; border-radius: 5px; font-size: 12px; cursor: pointer; text-align: center; text-decoration: none; }
+
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2000; overflow-y: auto; padding: 20px; }
+        .modal { background: white; border-radius: 15px; padding: 20px; max-width: 500px; margin: auto; }
+        .close-btn { float: right; font-size: 24px; cursor: pointer; }
+        
+        .form-group { margin-bottom: 15px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .confirm-btn { background: var(--primary); color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
+
+        .cart-item { display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .cart-item img { width: 60px; height: 60px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="top-bar">
+        <div style="font-size: 20px; font-weight: bold; color: var(--primary);">MH SHOP</div>
+        <button class="cart-btn" onclick="openCart()">🛒 কার্ট (<span id="count">0</span>)</button>
+    </div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="পণ্য খুঁজুন..." onkeyup="searchProduct()">
+    </div>
+</header>
+
+<div class="filter-section">
+    <button class="f-btn active" onclick="filter('home')">হোম</button>
+    <button class="f-btn" onclick="filter('new')">নতুন কালেকশন</button>
+    <button class="f-btn" onclick="filter('offer')">নতুন অফার</button>
+</div>
+
+<section class="products">
+    <div class="grid" id="mainGrid"></div>
+</section>
+
+<div id="cartModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h2 style="text-align:center;">আপনার কার্ট</h2><br>
+        <div id="cartItems"></div>
+        <button class="confirm-btn" style="margin-top:20px;" onclick="openCheckout()">অর্ডার করুন</button>
+    </div>
+</div>
+
+<div id="checkoutModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h2 style="text-align:center;">অর্ডার কনফার্ম করুন</h2><br>
+        <div class="form-group">
+            <label>আপনার নাম:</label>
+            <input type="text" id="custName" placeholder="পুরো নাম লিখুন">
+        </div>
+        <div class="form-group">
+            <label>মোবাইল নম্বর:</label>
+            <input type="tel" id="custPhone" placeholder="017XXXXXXXX">
+        </div>
+        <div class="form-group">
+            <label>ঠিকানা:</label>
+            <textarea id="custAddr" rows="3" placeholder="গ্রাম/রাস্তা, থানা, জেলা"></textarea>
+        </div>
+        <button class="confirm-btn" id="submitOrderBtn" onclick="orderDone()">অর্ডার সাবমিট করুন</button>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    const botToken = "8056895902:AAECIwrBgeAzyUjZPpQ3A4Ku9fDCwv7CQPo";
+    const chatId = "7211983994";
+
+    const productsData = {
+        home: [
+            { id: 1, name: "প্রিমিয়াম ওয়াচ", price: 1200, img: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=300" },
+            { id: 2, name: "গেমিং মাউস", price: 850, img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300" },
+            { id: 3, name: "ব্লুটুথ স্পিকার", price: 1500, img: "https://images.unsplash.com/photo-1608156639585-34a0a56ee6c9?w=300" },
+            { id: 4, name: "সানগ্লাস", price: 450, img: "https://images.unsplash.com/photo-1511499767390-903390e6fbc4?w=300" },
+            { id: 5, name: "লেদার বেল্ট", price: 600, img: "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=300" },
+            { id: 6, name: "সাদা টি-শার্ট", price: 350, img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300" },
+            { id: 7, name: "ব্যাকপ্যাক", price: 1800, img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300" },
+            { id: 8, name: "পাওয়ার ব্যাংক", price: 2200, img: "https://images.unsplash.com/photo-1609091839311-d536801ff24d?w=300" },
+            { id: 9, name: "ট্রাইপড", price: 950, img: "https://images.unsplash.com/photo-1590235214811-9a7460c57221?w=300" },
+            { id: 10, name: "কিবোর্ড", price: 1100, img: "https://images.unsplash.com/photo-1587829741301-dc798b83aca2?w=300" }
+        ],
+        new: [
+            { id: 11, name: "iPhone 15", price: 130000, img: "https://images.unsplash.com/photo-1696446701796-da61225697cc?w=300" },
+            { id: 12, name: "Sony Headphones", price: 25000, img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300" },
+            { id: 13, name: "Smart Ring", price: 5500, img: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=300" },
+            { id: 14, name: "Vlog Camera", price: 65000, img: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300" },
+            { id: 15, name: "Mechanical Keyboard", price: 4200, img: "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=300" },
+            { id: 16, name: "RGB Lights", price: 1200, img: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=300" }
+        ],
+        offer: [
+            { id: 17, name: "Nike Shoes", price: 2500, img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300" },
+            { id: 18, name: "Laptop Bag", price: 800, img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300" },
+            { id: 19, name: "Winter Jacket", price: 1200, img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300" },
+            { id: 20, name: "USB Hub", price: 300, img: "https://images.unsplash.com/photo-1563823251941-b9989d1e8d97?w=300" },
+            { id: 21, name: "Water Bottle", price: 150, img: "https://images.unsplash.com/photo-1602143303410-fd3d39e36500?w=300" }
+        ]
+    };
+
+    function render(list) {
+        const grid = document.getElementById('mainGrid');
+        grid.innerHTML = '';
+        list.forEach(p => {
+            grid.innerHTML += `
+                <div class="card">
+                    <img src="${p.img}">
+                    <div class="info">
+                        <h3>${p.name}</h3>
+                        <p class="price">৳ ${p.price}</p>
+                        <div class="btn-box">
+                            <button class="add-btn" onclick="addToCart(${p.id}, '${p.name}', ${p.price}, '${p.img}')">কার্টে যোগ করুন</button>
+                            <button class="buy-now" onclick="directBuy(${p.id}, '${p.name}', ${p.price}, '${p.img}')">এখনই কিনুন</button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function filter(type) {
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+        render(productsData[type]);
+    }
+
+    function addToCart(id, name, price, img) {
+        cart.push({id, name, price, img});
+        document.getElementById('count').innerText = cart.length;
+        alert(name + " কার্টে যোগ হয়েছে!");
+    }
+
+    function directBuy(id, name, price, img) {
+        cart = [{id, name, price, img}]; // কার্ট ক্লিয়ার করে শুধু এটি রাখা
+        document.getElementById('count').innerText = "1";
+        openCheckout();
+    }
+
+    function openCart() {
+        const itemsDiv = document.getElementById('cartItems');
+        itemsDiv.innerHTML = cart.length === 0 ? "<p style='text-align:center;'>আপনার কার্ট খালি!</p>" : "";
+        cart.forEach((item, index) => {
+            itemsDiv.innerHTML += `
+                <div class="cart-item">
+                    <img src="${item.img}">
+                    <div>
+                        <h4>${item.name}</h4>
+                        <p>৳ ${item.price}</p>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('cartModal').style.display = 'block';
+    }
+
+    function openCheckout() {
+        if(cart.length === 0) return alert("আগে পণ্য কার্টে যোগ করুন!");
+        closeModals();
+        document.getElementById('checkoutModal').style.display = 'block';
+    }
+
+    function closeModals() {
+        document.getElementById('cartModal').style.display = 'none';
+        document.getElementById('checkoutModal').style.display = 'none';
+    }
+
+    function orderDone() {
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
+        const address = document.getElementById('custAddr').value;
+
+        if(!name || !phone || !address) return alert("সবগুলো তথ্য সঠিকভাবে পূরণ করুন!");
+
+        const btn = document.getElementById('submitOrderBtn');
+        btn.innerText = "অর্ডার হচ্ছে...";
+        btn.disabled = true;
+
+        let pList = cart.map(i => `▫️ ${i.name} (৳${i.price})`).join("\n");
+        let total = cart.reduce((sum, i) => sum + i.price, 0);
+
+        const text = `🛍️ *নতুন অর্ডার এসেছে!* \n\n👤 কাস্টমার: ${name}\n📞 ফোন: ${phone}\n🏠 ঠিকানা: ${address}\n\n🛒 *অর্ডার করা পণ্য:* \n${pList}\n\n💰 *মোট মূল্য:* ৳${total}\n\n✅ দ্রুত যোগাযোগ করুন!`;
+
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`;
+
+        fetch(url).then(res => {
+            if(res.ok) {
+                alert("মাশাল্লাহ! আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।");
+                cart = [];
+                document.getElementById('count').innerText = "0";
+                document.getElementById('custName').value = "";
+                document.getElementById('custPhone').value = "";
+                document.getElementById('custAddr').value = "";
+                closeModals();
+            } else {
+                alert("দুঃখিত, কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+            }
+        }).finally(() => {
+            btn.innerText = "অর্ডার সাবমিট করুন";
+            btn.disabled = false;
+        });
+    }
+
+    function searchProduct() {
+        let input = document.getElementById('searchInput').value.toLowerCase();
+        let allItems = [...productsData.home, ...productsData.new, ...productsData.offer];
+        let filtered = allItems.filter(p => p.name.toLowerCase().includes(input));
+        render(filtered);
+    }
+
+    render(productsData.home);
+</script>
+
+</body>
+</html>
 
         /* কার্ট ও চেকআউট ওভারলে (মোডাল) */
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2000; overflow-y: auto; padding: 20px; }
