@@ -34,6 +34,259 @@
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px; }
         .card { background: var(--white); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; border: 1px solid rgba(0,0,0,0.05); }
         .card img { width: 100%; height: 160px; object-fit: cover; }
+        .wish-icon { position: absolute; top: 10px; right: 10px; font-size: 22px; cursor: pointer; z-index: 10; }
+        
+        .info { padding: 10px; text-align: center; }
+        .info h3 { font-size: 15px; margin-bottom: 5px; height: 40px; overflow: hidden; }
+        .price { color: var(--primary); font-weight: bold; font-size: 17px; display: block; margin: 5px 0; }
+        
+        /* ডায়ালগ ডিজাইন */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); padding: 15px; }
+        .modal { background: var(--white); border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; position: relative; max-height: 85vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; }
+
+        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 14px; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-light { background: #f1f2f6; color: #333; }
+        
+        .item-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .item-row img { width: 55px; height: 55px; border-radius: 8px; object-fit: cover; }
+        .item-details { flex: 1; }
+        .delivery-info { background: #fff5f6; padding: 10px; border-radius: 10px; font-size: 13px; margin-top: 15px; border: 1px solid #ffd1d6; color: #d63031; text-align: center; }
+
+        .whatsapp-float { position: fixed; bottom: 20px; right: 20px; background: #25d366; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; box-shadow: 2px 2px 10px rgba(0,0,0,0.2); z-index: 1500; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">MH SHOP</div>
+    <div class="nav-tools">
+        <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+        <button class="wish-btn" onclick="openWishlist()">❤️</button>
+        <button class="cart-btn" onclick="openCart()">🛒 <span class="cart-count" id="count">0</span></button>
+    </div>
+</header>
+
+<img src="Morad_Hasan.png" class="cover-photo" alt="Cover">
+
+<div class="notice-container">
+    <div class="marquee">ঢাকার ভিতরে ডেলিভারি চার্জ ৮৫ টাকা এবং ঢাকার বাহিরে ডেলিভারি চার্জ ১৩০ টাকা পুরো বাংলাদেশ। পছন্দ হলে অবশ্যই অর্ডার করুন!</div>
+</div>
+
+<div class="search-container">
+    <input type="text" id="searchBar" placeholder="পণ্য খুঁজুন (যেমন: ল্যাপটপ)..." onkeyup="filterProducts()">
+</div>
+
+<div class="categories">
+    <button class="cat-btn active" onclick="filterCat('All', this)">সব পণ্য</button>
+    <button class="cat-btn" onclick="filterCat('ওয়াচ', this)">স্মার্টওয়াচ</button>
+    <button class="cat-btn" onclick="filterCat('ল্যাপটপ', this)">ল্যাপটপ</button>
+    <button class="cat-btn" onclick="filterCat('গ্যাজেট', this)">গ্যাজেট</button>
+</div>
+
+<div class="grid" id="productGrid">
+    </div>
+
+<div id="cartModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h3 style="margin-bottom: 10px;">🛒 আপনার কার্ট</h3>
+        <div id="cartList"></div>
+        <div id="totalPrice" style="text-align:right; font-weight:bold; padding: 15px 0;"></div>
+        <button id="orderAllBtn" class="btn btn-success" style="display:none;" onclick="orderAllFromCart()">সবগুলো একসাথে অর্ডার করুন</button>
+    </div>
+</div>
+
+<div id="wishModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h3 style="margin-bottom: 10px;">❤️ আপনার পছন্দের তালিকা</h3>
+        <div id="wishList"></div>
+    </div>
+</div>
+
+<div id="orderModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h3 style="margin-bottom: 15px;">📝 অর্ডার কনফার্ম করুন</h3>
+        <input type="text" id="custName" class="btn btn-light" placeholder="এখানে নাম লিখুন">
+        <input type="tel" id="custPhone" class="btn btn-light" placeholder="এখানে ফোন নাম্বার লিখুন">
+        <textarea id="custAddr" class="btn btn-light" placeholder="এখানে আপনার সম্পূর্ণ ঠিকানা লিখুন" rows="3"></textarea>
+        <div class="delivery-info">
+            🚚 ঢাকার ভিতরে ৮৫ টাকা | ঢাকার বাহিরে ১৩০ টাকা
+        </div>
+        <button class="btn btn-success" onclick="submitOrder()">অর্ডার নিশ্চিত করুন</button>
+    </div>
+</div>
+
+<div id="successModal" class="overlay">
+    <div class="modal" style="text-align: center;">
+        <h2 style="color:var(--success)">🎉 অর্ডার সফল!</h2>
+        <div id="invoice" style="background:#f9f9f9; padding:15px; border-radius:10px; margin:15px 0; text-align:left;"></div>
+        <button class="btn btn-success" onclick="location.reload()">হোম পেজে ফিরুন</button>
+    </div>
+</div>
+
+<a href="https://wa.me/8801953051602" class="whatsapp-float" target="_blank">💬</a>
+
+<script>
+    const botToken = "8056895902:AAECIwrBgeAzyUjZPpQ3A4Ku9fDCwv7CQPo";
+    const chatId = "7211983994";
+    const githubUser = "moradhusain";
+    const repoName = "my-shop";
+    
+    let allProducts = [], cart = [], wishlist = [], currentOrder = [];
+
+    window.onload = () => {
+        cart = JSON.parse(localStorage.getItem('mhCart') || '[]');
+        wishlist = JSON.parse(localStorage.getItem('mhWish') || '[]');
+        updateCounts();
+        fetchProducts();
+        if(localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+    };
+
+    function toggleTheme() {
+        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    }
+
+    async function fetchProducts() {
+        try {
+            const res = await fetch(`https://api.github.com/repos/${githubUser}/${repoName}/contents/`);
+            const files = await res.json();
+            allProducts = files.filter(f => f.name.match(/\.(jpg|png|webp|jpeg)$/i) && f.name !== "Morad_Hasan.png").map(f => {
+                let p = f.name.split('.')[0].split('_');
+                return { name: p[0], price: p[1] || '0', img: f.download_url };
+            });
+            renderProducts(allProducts);
+        } catch(e) { console.log(e); }
+    }
+
+    function renderProducts(list) {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = list.map(p => {
+            const isLiked = wishlist.some(w => w.name === p.name);
+            return `
+                <div class="card">
+                    <span class="wish-icon" onclick="toggleWish('${p.name}','${p.price}','${p.img}')">${isLiked ? '❤️' : '🤍'}</span>
+                    <img src="${p.img}">
+                    <div class="info">
+                        <h3>${p.name}</h3>
+                        <span class="price">৳ ${p.price}</span>
+                        <button class="btn btn-success" onclick="orderNow('${p.name}','${p.price}')">অর্ডার</button>
+                        <button class="btn btn-light" onclick="addToCart('${p.name}','${p.price}','${p.img}')">কার্টে রাখুন</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function filterProducts() {
+        const term = document.getElementById('searchBar').value.toLowerCase();
+        renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(term)));
+    }
+
+    function filterCat(cat, btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.name.includes(cat)));
+    }
+
+    function updateCounts() {
+        document.getElementById('count').innerText = cart.length;
+    }
+
+    function addToCart(n, p, i) {
+        cart.push({n, p, i});
+        localStorage.setItem('mhCart', JSON.stringify(cart));
+        updateCounts();
+        alert("কার্টে যোগ হয়েছে!");
+    }
+
+    function toggleWish(n, p, i) {
+        const idx = wishlist.findIndex(w => w.name === n);
+        if(idx > -1) wishlist.splice(idx, 1);
+        else wishlist.push({name: n, price: p, img: i});
+        localStorage.setItem('mhWish', JSON.stringify(wishlist));
+        renderProducts(allProducts);
+    }
+
+    function openWishlist() {
+        const list = document.getElementById('wishList');
+        if(!wishlist.length) return list.innerHTML = "<p style='text-align:center; padding: 20px;'>তালিকা খালি!</p>";
+        list.innerHTML = wishlist.map((item, idx) => `
+            <div class="item-row">
+                <img src="${item.img}">
+                <div class="item-details"><b>${item.name}</b><br>৳${item.price}</div>
+                <button onclick="orderNow('${item.name}','${item.price}')" style="background:#2ed573; color:white; border:none; padding:5px 8px; border-radius:5px;">অর্ডার</button>
+                <button onclick="wishlist.splice(${idx},1); localStorage.setItem('mhWish', JSON.stringify(wishlist)); openWishlist(); renderProducts(allProducts);" style="border:none; background:none; color:red; font-size:18px; margin-left:5px;">&times;</button>
+            </div>
+        `).join('');
+        document.getElementById('wishModal').style.display = 'flex';
+    }
+
+    function openCart() {
+        const list = document.getElementById('cartList');
+        if(!cart.length) {
+            list.innerHTML = "<p style='text-align:center; padding: 20px;'>কার্ট খালি!</p>";
+            document.getElementById('totalPrice').innerText = "";
+            document.getElementById('orderAllBtn').style.display = 'none';
+        } else {
+            let total = 0;
+            list.innerHTML = cart.map((item, idx) => {
+                total += parseInt(item.p.replace(/[^0-9]/g, ''));
+                return `
+                    <div class="item-row">
+                        <img src="${item.i}">
+                        <div class="item-details"><b>${item.n}</b><br>৳${item.p}</div>
+                        <button onclick="orderNow('${item.n}','${item.p}')" style="background:#2ed573; color:white; border:none; padding:5px 8px; border-radius:5px;">অর্ডার</button>
+                        <button onclick="cart.splice(${idx},1); localStorage.setItem('mhCart', JSON.stringify(cart)); openCart(); updateCounts();" style="border:none; background:none; color:red; font-size:18px; margin-left:5px;">&times;</button>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('totalPrice').innerText = "মোট মূল্য: ৳" + total;
+            document.getElementById('orderAllBtn').style.display = 'block';
+        }
+        document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function orderNow(n, p) {
+        currentOrder = [{n, p}];
+        closeModals();
+        document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function orderAllFromCart() {
+        currentOrder = cart.map(item => ({ n: item.n, p: item.p }));
+        closeModals();
+        document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function submitOrder() {
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
+        const addr = document.getElementById('custAddr').value;
+        if(!name || !phone || !addr) return alert("সব তথ্য পূরণ করুন!");
+
+        let itemText = currentOrder.map(i => `▫️ ${i.n} (৳${i.p})`).join("\n");
+        let total = currentOrder.reduce((acc, i) => acc + parseInt(i.p.replace(/[^0-9]/g, '')), 0);
+        
+        let msg = `🛍️ *নতুন অর্ডার!*\n\n👤 নাম: ${name}\n📞 ফোন: ${phone}\n🏠 ঠিকানা: ${addr}\n\n🛒 পণ্য তালিকা:\n${itemText}\n💰 মোট: ৳${total}`;
+
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
+        .then(() => {
+            document.getElementById('invoice').innerHTML = `<p><b>নাম:</b> ${name}</p><p><b>ফোন:</b> ${phone}</p><p><b>পণ্য:</b><br>${itemText.replace(/\n/g,'<br>')}</p><p><b>মোট মূল্য:</b> ৳${total}</p>`;
+            document.getElementById('orderModal').style.display = 'none';
+            document.getElementById('successModal').style.display = 'flex';
+        });
+    }
+
+    function closeModals() { document.querySelectorAll('.overlay').forEach(e => e.style.display = 'none'); }
+</script>
+</body>
+</html>
         .wish-icon { position: absolute; top: 10px; right: 10px; font-size: 22px; cursor: pointer; z-index: 10; filter: drop-shadow(0 0 2px white); }
         .info { padding: 10px; text-align: center; }
         .info h3 { font-size: 15px; margin-bottom: 5px; height: 40px; overflow: hidden; }
