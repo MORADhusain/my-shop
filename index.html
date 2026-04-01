@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mh Ultimate Shop</title>
+    <title>MORAD AND SALAM SHOP - আপনার প্রিয় শপিং গন্তব্য</title>
     <style>
         :root { --primary: #ff4757; --secondary: #2f3542; --success: #2ed573; --white: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
@@ -22,7 +22,7 @@
         .products { padding: 10px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .card img { width: 100%; height: 130px; object-fit: cover; }
+        .card img { width: 100%; height: 130px; object-fit: cover; background-color: #eee; }
         .info { padding: 8px; text-align: center; }
         .info h3 { font-size: 13px; margin-bottom: 3px; height: 32px; overflow: hidden; }
         .price { color: var(--primary); font-weight: bold; font-size: 15px; }
@@ -34,6 +34,168 @@
         .modal { background: white; border-radius: 15px; padding: 20px; max-width: 400px; margin: 30px auto; text-align: center; }
         .close-btn { float: right; font-size: 22px; cursor: pointer; margin-top: -10px; }
         
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .confirm-btn { background: var(--primary); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+
+        footer { background: var(--secondary); color: var(--white); text-align: center; padding: 20px; margin-top: 20px; border-radius: 10px 10px 0 0; }
+        
+        /* সাকসেস ডায়লগ স্টাইল */
+        .success-icon { font-size: 40px; color: var(--success); margin-bottom: 10px; }
+        .order-summary { background: #f1f2f6; padding: 10px; border-radius: 8px; margin: 15px 0; text-align: left; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="top-bar">
+        <div style="font-size: 18px; font-weight: bold; color: var(--primary);">MH SHOP</div>
+        <button class="cart-btn" onclick="openCart()">🛒 কার্ট (<span id="count">0</span>)</button>
+    </div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="পণ্য খুঁজুন..." onkeyup="searchProduct()">
+    </div>
+</header>
+
+<div class="filter-section">
+    <button class="f-btn active" onclick="filter('home')">হোম</button>
+    <button class="f-btn" onclick="filter('new')">নতুন কালেকশন</button>
+    <button class="f-btn" onclick="filter('offer')">নতুন অফার</button>
+</div>
+
+<section class="products">
+    <div class="grid" id="mainGrid"></div>
+</section>
+
+<footer>
+    <p>© ২০২৬ MH SHOP - সকল স্বত্ব সংরক্ষিত</p>
+    <p>আপনার আস্থার সঠিক ঠিকানা</p>
+</footer>
+
+<div id="cartModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h2>আপনার কার্ট</h2><br>
+        <div id="cartItems"></div>
+        <button class="confirm-btn" style="margin-top:15px;" onclick="openCheckout()">অর্ডার করুন</button>
+    </div>
+</div>
+
+<div id="checkoutModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h2>অর্ডার কনফার্ম করুন</h2><br>
+        <div class="form-group">
+            <label>আপনার নাম:</label>
+            <input type="text" id="custName" placeholder="পুরো নাম লিখুন">
+        </div>
+        <div class="form-group">
+            <label>মোবাইল নম্বর:</label>
+            <input type="tel" id="custPhone" placeholder="017XXXXXXXX">
+        </div>
+        <div class="form-group">
+            <label>ঠিকানা:</label>
+            <textarea id="custAddr" rows="3" placeholder="গ্রাম/রাস্তা, থানা, জেলা"></textarea>
+        </div>
+        <button class="confirm-btn" id="submitOrderBtn" onclick="orderDone()">অর্ডার সাবমিট করুন</button>
+    </div>
+</div>
+
+<div id="successModal" class="overlay">
+    <div class="modal">
+        <div class="success-icon">✓</div>
+        <h2>মাশাল্লাহ!</h2>
+        <p>আপনার অর্ডারটি সম্পন্ন হয়েছে।</p>
+        <div class="order-summary" id="orderSummaryHtml"></div>
+        <button class="confirm-btn" onclick="backToShopping()" style="background:var(--success);">শপিং করুন</button>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    const botToken = "8056895902:AAECIwrBgeAzyUjZPpQ3A4Ku9fDCwv7CQPo";
+    const chatId = "7211983994";
+
+    // এখানে ২০টি পণ্যের ডাটা দেওয়া হলো। আপনি GitHub-এ images ফোল্ডার তৈরি করে ১.jpg থেকে ২০.jpg পর্যন্ত ছবি আপলোড করলে অটোমেটিক শো করবে।
+    const productsData = {
+        home: [
+            { id: 1, name: "প্রিমিয়াম ওয়াচ", price: 1200, img: "1.jpg" },
+            { id: 2, name: "গেমিং মাউস", price: 850, img: "2.jpg" },
+            { id: 3, name: "ব্লুটুথ স্পিকার", price: 1500, img: "3.jpg" },
+            { id: 4, name: "সানগ্লাস", price: 450, img: "4.jpg" },
+            { id: 5, name: "লেদার বেল্ট", price: 600, img: "5.jpg" },
+            { id: 6, name: "সাদা টি-শার্ট", price: 350, img: "6.jpg" },
+            { id: 7, name: "ব্যাকপ্যাক", price: 1800, img: "7.jpg" },
+            { id: 8, name: "পাওয়ার ব্যাংক", price: 2200, img: "8.jpg" },
+            { id: 9, name: "ট্রাইপড", price: 950, img: "9.jpg" },
+            { id: 10, name: "কিবোর্ড", price: 1100, img: "10.jpg" },
+            { id: 11, name: "ল্যাপটপ ব্যাগ", price: 1300, img: "11.jpg" },
+            { id: 12, name: "হেডফোন", price: 1400, img: "12.jpg" },
+            { id: 13, name: "স্মার্ট ওয়াচ", price: 2500, img: "13.jpg" },
+            { id: 14, name: "গেমিং কিবোর্ড", price: 2100, img: "14.jpg" },
+            { id: 15, name: "ইউএসবি ক্যাবল", price: 250, img: "15.jpg" },
+            { id: 16, name: "চার্জার", price: 500, img: "16.jpg" },
+            { id: 17, name: "মাউস প্যাড", price: 150, img: "17.jpg" },
+            { id: 18, name: "ইয়ারফোন", price: 300, img: "18.jpg" },
+            { id: 19, name: "পকেট রাউটার", price: 3500, img: "19.jpg" },
+            { id: 20, name: "ক্যামেরা ট্রাইপড", price: 1250, img: "20.jpg" }
+        ],
+        new: [], offer: []
+    };
+
+    function render(list) {
+        const grid = document.getElementById('mainGrid');
+        grid.innerHTML = '';
+        list.forEach(p => {
+            grid.innerHTML += `
+                <div class="card">
+                    <img src="${p.img}" onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+                    <div class="info">
+                        <h3>${p.name}</h3>
+                        <p class="price">৳ ${p.price}</p>
+                        <div class="btn-box">
+                            <button class="add-btn" onclick="addToCart(${p.id}, '${p.name}', ${p.price}, '${p.img}')">কার্টে যোগ করুন</button>
+                            <button class="buy-now" onclick="directBuy(${p.id}, '${p.name}', ${p.price}, '${p.img}')">এখনই কিনুন</button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    // আগের জাভাস্ক্রিপ্ট ফাংশনগুলো এখানে থাকবে...
+    function filter(type) {
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+        if(event) event.target.classList.add('active');
+        render(productsData[type]);
+    }
+    function addToCart(id, name, price, img) { cart.push({id, name, price, img}); document.getElementById('count').innerText = cart.length; alert(name + " কার্টে যোগ হয়েছে!"); }
+    function directBuy(id, name, price, img) { cart = [{id, name, price, img}]; openCheckout(); }
+    function openCart() { document.getElementById('cartModal').style.display = 'block'; /* Items render code */ }
+    function openCheckout() { closeModals(); document.getElementById('checkoutModal').style.display = 'block'; }
+    function closeModals() { document.querySelectorAll('.overlay').forEach(m => m.style.display = 'none'); }
+    function backToShopping() { cart = []; document.getElementById('count').innerText = "0"; closeModals(); }
+    function orderDone() {
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
+        const address = document.getElementById('custAddr').value;
+        if(!name || !phone || !address) return alert("তথ্য দিন!");
+        
+        let pList = cart.map(i => i.name).join(", ");
+        let total = cart.reduce((sum, i) => sum + i.price, 0);
+        const text = `🛍️ অর্ডার!\n👤 কাস্টমার: ${name}\n📞 ফোন: ${phone}\n🛒 পণ্য: ${pList}\n💰 মোট: ৳${total}`;
+        
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}`).then(res => {
+            if(res.ok) {
+                document.getElementById('orderSummaryHtml').innerHTML = `<p><strong>পণ্য:</strong> ${pList}</p><p><strong>মোট:</strong> ৳${total}</p>`;
+                document.getElementById('successModal').style.display = 'block';
+            }
+        });
+    }
+    render(productsData.home);
+</script>
+</body>
+</html>
         .form-group { margin-bottom: 12px; text-align: left; }
         .form-group label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 14px; }
         .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
