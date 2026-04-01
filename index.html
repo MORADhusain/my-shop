@@ -7,7 +7,7 @@
     <style>
         :root { --primary: #ff4757; --secondary: #2f3542; --success: #2ed573; --white: #ffffff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; scroll-behavior: smooth; }
-        body { background-color: #f8f9fa; color: var(--secondary); }
+        body { background-color: #f8f9fa; color: var(--secondary); padding-bottom: 50px; }
 
         header { background: var(--white); padding: 10px 5%; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -22,18 +22,265 @@
         .products { padding: 10px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #eee; }
-        .card img { width: 100%; height: 150px; object-fit: cover; }
-        .info { padding: 10px; text-align: center; }
-        .info h3 { font-size: 14px; margin-bottom: 5px; height: 35px; overflow: hidden; }
-        .price { color: var(--primary); font-weight: bold; font-size: 16px; }
-        .btn-box { display: flex; flex-direction: column; gap: 5px; margin-top: 10px; }
-        .add-btn { background: #eee; border: none; padding: 8px; border-radius: 5px; font-size: 12px; cursor: pointer; }
-        .buy-now { background: var(--success); color: white; border: none; padding: 8px; border-radius: 5px; font-size: 12px; cursor: pointer; text-align: center; text-decoration: none; }
+        .card img { width: 100%; height: 130px; object-fit: cover; }
+        .info { padding: 8px; text-align: center; }
+        .info h3 { font-size: 13px; margin-bottom: 3px; height: 32px; overflow: hidden; }
+        .price { color: var(--primary); font-weight: bold; font-size: 15px; }
+        .btn-box { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+        .add-btn { background: #eee; border: none; padding: 6px; border-radius: 4px; font-size: 11px; cursor: pointer; }
+        .buy-now { background: var(--success); color: white; border: none; padding: 6px; border-radius: 4px; font-size: 11px; cursor: pointer; text-align: center; }
 
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; z-index: 2000; overflow-y: auto; padding: 20px; }
-        .modal { background: white; border-radius: 15px; padding: 20px; max-width: 500px; margin: auto; }
-        .close-btn { float: right; font-size: 24px; cursor: pointer; }
+        .modal { background: white; border-radius: 15px; padding: 20px; max-width: 400px; margin: 30px auto; text-align: center; }
+        .close-btn { float: right; font-size: 22px; cursor: pointer; margin-top: -10px; }
         
+        .form-group { margin-bottom: 12px; text-align: left; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: bold; font-size: 14px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .confirm-btn { background: var(--primary); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+
+        .cart-item { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #eee; padding: 8px 0; text-align: left; }
+        .cart-item img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
+        .cart-item h4 { font-size: 14px; }
+        .cart-item p { font-size: 13px; color: var(--primary); }
+
+        /* সাকসেস ডায়লগ স্টাইল */
+        .success-icon { font-size: 40px; color: var(--success); margin-bottom: 10px; }
+        .order-summary { background: #f1f2f6; padding: 10px; border-radius: 8px; margin: 15px 0; text-align: left; font-size: 13px; }
+        .order-summary p { margin-bottom: 4px; }
+        .shop-again-btn { background: var(--success); color: white; width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="top-bar">
+        <div style="font-size: 18px; font-weight: bold; color: var(--primary);">MH SHOP</div>
+        <button class="cart-btn" onclick="openCart()">🛒 কার্ট (<span id="count">0</span>)</button>
+    </div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="পণ্য খুঁজুন..." onkeyup="searchProduct()">
+    </div>
+</header>
+
+<div class="filter-section">
+    <button class="f-btn active" onclick="filter('home')">হোম</button>
+    <button class="f-btn" onclick="filter('new')">নতুন কালেকশন</button>
+    <button class="f-btn" onclick="filter('offer')">নতুন অফার</button>
+</div>
+
+<section class="products">
+    <div class="grid" id="mainGrid"></div>
+</section>
+
+<div id="cartModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h2>আপনার কার্ট</h2><br>
+        <div id="cartItems"></div>
+        <button class="confirm-btn" style="margin-top:15px;" onclick="openCheckout()">অর্ডার করুন</button>
+    </div>
+</div>
+
+<div id="checkoutModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h2>অর্ডার কনফার্ম করুন</h2><br>
+        <div class="form-group">
+            <label>আপনার নাম:</label>
+            <input type="text" id="custName" placeholder="পুরো নাম লিখুন">
+        </div>
+        <div class="form-group">
+            <label>মোবাইল নম্বর:</label>
+            <input type="tel" id="custPhone" placeholder="017XXXXXXXX">
+        </div>
+        <div class="form-group">
+            <label>ঠিকানা:</label>
+            <textarea id="custAddr" rows="3" placeholder="গ্রাম/রাস্তা, থানা, জেলা"></textarea>
+        </div>
+        <button class="confirm-btn" id="submitOrderBtn" onclick="orderDone()">অর্ডার সাবমিট করুন</button>
+    </div>
+</div>
+
+<div id="successModal" class="overlay">
+    <div class="modal">
+        <div class="success-icon">✓</div>
+        <h2>মাশাল্লাহ!</h2>
+        <p style="color: #666; margin-top: 5px;">আপনার অর্ডারটি সম্পন্ন হয়েছে।</p>
+        <div class="order-summary" id="orderSummaryHtml"></div>
+        <button class="shop-again-btn" onclick="backToShopping()">শপিং করুন</button>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    const botToken = "8056895902:AAECIwrBgeAzyUjZPpQ3A4Ku9fDCwv7CQPo";
+    const chatId = "7211983994";
+
+    const productsData = {
+        home: [
+            { id: 1, name: "প্রিমিয়াম ওয়াচ", price: 1200, img: "https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=300" },
+            { id: 2, name: "গেমিং মাউস", price: 850, img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=300" },
+            { id: 3, name: "ব্লুটুথ স্পিকার", price: 1500, img: "https://images.unsplash.com/photo-1608156639585-34a0a56ee6c9?w=300" },
+            { id: 4, name: "সানগ্লাস", price: 450, img: "https://images.unsplash.com/photo-1511499767390-903390e6fbc4?w=300" },
+            { id: 5, name: "লেদার বেল্ট", price: 600, img: "https://images.unsplash.com/photo-1624222247344-550fb60583dc?w=300" },
+            { id: 6, name: "সাদা টি-শার্ট", price: 350, img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300" },
+            { id: 7, name: "ব্যাকপ্যাক", price: 1800, img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300" },
+            { id: 8, name: "পাওয়ার ব্যাংক", price: 2200, img: "https://images.unsplash.com/photo-1593941712499-f4633d94b05a?w=300" }, // ফিক্সড লিংক
+            { id: 9, name: "ট্রাইপড", price: 950, img: "https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=300" }, // ফিক্সড লিংক
+            { id: 10, name: "কিবোর্ড", price: 1100, img: "https://images.unsplash.com/photo-1587829741301-dc798b83aca2?w=300" }
+        ],
+        new: [
+            { id: 11, name: "iPhone 15", price: 130000, img: "https://images.unsplash.com/photo-1696446701796-da61225697cc?w=300" },
+            { id: 12, name: "Sony Headphones", price: 25000, img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300" },
+            { id: 13, name: "Smart Ring", price: 5500, img: "https://images.unsplash.com/photo-1627123424574-724758594e93?w=300" },
+            { id: 14, name: "Vlog Camera", price: 65000, img: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=300" },
+            { id: 15, name: "Mechanical Keyboard", price: 4200, img: "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=300" },
+            { id: 16, name: "RGB Lights", price: 1200, img: "https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=300" }
+        ],
+        offer: [
+            { id: 17, name: "Nike Shoes", price: 2500, img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300" },
+            { id: 18, name: "Laptop Bag", price: 800, img: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300" },
+            { id: 19, name: "Winter Jacket", price: 1200, img: "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=300" },
+            { id: 20, name: "USB Hub", price: 300, img: "https://images.unsplash.com/photo-1563823251941-b9989d1e8d97?w=300" },
+            { id: 21, name: "Water Bottle", price: 150, img: "https://images.unsplash.com/photo-1602143303410-fd3d39e36500?w=300" }
+        ]
+    };
+
+    function render(list) {
+        const grid = document.getElementById('mainGrid');
+        grid.innerHTML = '';
+        list.forEach(p => {
+            grid.innerHTML += `
+                <div class="card">
+                    <img src="${p.img}" alt="${p.name}">
+                    <div class="info">
+                        <h3>${p.name}</h3>
+                        <p class="price">৳ ${p.price}</p>
+                        <div class="btn-box">
+                            <button class="add-btn" onclick="addToCart(${p.id}, '${p.name}', ${p.price}, '${p.img}')">কার্টে যোগ করুন</button>
+                            <button class="buy-now" onclick="directBuy(${p.id}, '${p.name}', ${p.price}, '${p.img}')">এখনই কিনুন</button>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    }
+
+    function filter(type) {
+        document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+        if(event) event.target.classList.add('active');
+        render(productsData[type]);
+    }
+
+    function addToCart(id, name, price, img) {
+        cart.push({id, name, price, img});
+        document.getElementById('count').innerText = cart.length;
+        alert(name + " কার্টে যোগ হয়েছে!");
+    }
+
+    function directBuy(id, name, price, img) {
+        cart = [{id, name, price, img}]; 
+        document.getElementById('count').innerText = "1";
+        openCheckout();
+    }
+
+    function openCart() {
+        const itemsDiv = document.getElementById('cartItems');
+        itemsDiv.innerHTML = cart.length === 0 ? "<p style='text-align:center; padding:10px;'>কার্ট খালি!</p>" : "";
+        cart.forEach((item) => {
+            itemsDiv.innerHTML += `
+                <div class="cart-item">
+                    <img src="${item.img}">
+                    <div>
+                        <h4>${item.name}</h4>
+                        <p>৳ ${item.price}</p>
+                    </div>
+                </div>`;
+        });
+        document.getElementById('cartModal').style.display = 'block';
+    }
+
+    function openCheckout() {
+        if(cart.length === 0) return alert("আগে পণ্য কার্টে যোগ করুন!");
+        closeModals();
+        document.getElementById('checkoutModal').style.display = 'block';
+    }
+
+    function closeModals() {
+        document.getElementById('cartModal').style.display = 'none';
+        document.getElementById('checkoutModal').style.display = 'none';
+        document.getElementById('successModal').style.display = 'none';
+    }
+
+    function orderDone() {
+        const name = document.getElementById('custName').value.trim();
+        const phone = document.getElementById('custPhone').value.trim();
+        const address = document.getElementById('custAddr').value.trim();
+
+        if(!name || !phone || !address) return alert("দয়া করে সব তথ্য দিন!");
+
+        const btn = document.getElementById('submitOrderBtn');
+        btn.innerText = "অর্ডার সাবমিট হচ্ছে...";
+        btn.disabled = true;
+
+        let pList = cart.map(i => `▫️ ${i.name} (৳${i.price})`).join("\n");
+        let total = cart.reduce((sum, i) => sum + i.price, 0);
+
+        const text = `🛍️ *নতুন অর্ডার এসেছে!* \n\n👤 কাস্টমার: ${name}\n📞 ফোন: ${phone}\n🏠 ঠিকানা: ${address}\n\n🛒 *অর্ডার করা পণ্য:* \n${pList}\n\n💰 *মোট মূল্য:* ৳${total}`;
+
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(text)}&parse_mode=Markdown`;
+
+        // টেলিগ্রাম মেসেজ পাঠানোর নতুন পদ্ধতি
+        fetch(url).then(res => {
+            if(res.ok) {
+                showSuccessModal(name, phone, pList, total);
+            } else {
+                alert("দুঃখিত, কোনো সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+            }
+        }).catch(() => {
+            alert("ইন্টারনেট কানেকশন চেক করুন!");
+        }).finally(() => {
+            btn.innerText = "অর্ডার সাবমিট করুন";
+            btn.disabled = false;
+        });
+    }
+
+    // সাকসেস ডায়লগ দেখানোর ফাংশন
+    function showSuccessModal(name, phone, pList, total) {
+        closeModals();
+        const summaryHtml = `
+            <p><strong>নাম:</strong> ${name}</p>
+            <p><strong>ফোন:</strong> ${phone}</p>
+            <div style="margin: 8px 0;"><strong>পণ্যসমূহ:</strong><br>${pList.replace(/\n/g, '<br>')}</div>
+            <p><strong>মোট মূল্য:</strong> ৳${total}</p>
+        `;
+        document.getElementById('orderSummaryHtml').innerHTML = summaryHtml;
+        document.getElementById('successModal').style.display = 'block';
+    }
+
+    // শপিং করুন বাটনের ফাংশন
+    function backToShopping() {
+        cart = [];
+        document.getElementById('count').innerText = "0";
+        document.getElementById('custName').value = "";
+        document.getElementById('custPhone').value = "";
+        document.getElementById('custAddr').value = "";
+        closeModals();
+        filter('home'); // হোম পেজে নিয়ে যাবে
+    }
+
+    function searchProduct() {
+        let input = document.getElementById('searchInput').value.toLowerCase();
+        let allItems = [...productsData.home, ...productsData.new, ...productsData.offer];
+        let filtered = allItems.filter(p => p.name.toLowerCase().includes(input));
+        render(filtered);
+    }
+
+    render(productsData.home);
+</script>
+
+</body>
+</html>
         .form-group { margin-bottom: 15px; text-align: left; }
         .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
         .form-group input, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
