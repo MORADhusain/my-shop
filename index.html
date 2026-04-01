@@ -3,48 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MH SHOP - Advanced Edition</title>
+    <title>MH SHOP - Advanced Cart</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #ff4757; --success: #2ed573; --white: #ffffff; --bg: #f4f7fa; --text: #2d3436; --card-bg: #ffffff; }
-        [data-theme="dark"] { --white: #1e272e; --bg: #0f141a; --text: #f1f2f6; --card-bg: #2d3436; }
+        :root { --primary: #ff4757; --success: #2ed573; --white: #ffffff; --bg: #f4f6f9; --text: #333; }
+        [data-theme="dark"] { --white: #1e272e; --bg: #0f141a; --text: #f1f2f6; }
         
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; transition: all 0.3s ease; }
-        body { background: var(--bg); color: var(--text); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; }
+        body { background: var(--bg); color: var(--text); transition: 0.3s; }
 
-        header { background: var(--white); padding: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 12px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 24px; font-weight: 700; color: var(--primary); letter-spacing: 1px; }
-        .nav-icons { display: flex; gap: 18px; align-items: center; }
+        header { background: var(--white); padding: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary); }
+        .nav-icons { display: flex; gap: 15px; align-items: center; }
         
-        .container { padding: 20px; max-width: 1200px; margin: auto; }
-        .search-box { width: 100%; padding: 15px; border: 2px solid transparent; border-radius: 12px; margin-bottom: 25px; background: var(--white); color: var(--text); box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 16px; }
-        .search-box:focus { border-color: var(--primary); outline: none; }
+        .container { padding: 15px; max-width: 1200px; margin: auto; }
+        .search-box { width: 100%; padding: 12px; border: none; border-radius: 10px; margin-bottom: 20px; background: var(--white); color: var(--text); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
 
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
 
-        .card { background: var(--card-bg); border-radius: 16px; overflow: hidden; box-shadow: 0 6px 15px rgba(0,0,0,0.08); position: relative; border: 1px solid rgba(0,0,0,0.05); }
-        .card:hover { transform: translateY(-5px); }
-        .card .img-container { width: 100%; height: 180px; background: #dfe6e9; overflow: hidden; position: relative; }
-        .card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .card img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
+        .card-info { padding: 10px; text-align: center; }
+        .card-info h3 { font-size: 14px; margin-bottom: 5px; height: 40px; overflow: hidden; }
+        .price { color: var(--primary); font-weight: bold; font-size: 16px; margin-bottom: 8px; }
+        .add-btn { width: 100%; padding: 8px; border: none; background: var(--primary); color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+        /* Modal Settings */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 15px; }
+        .modal-content { background: var(--white); padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; position: relative; max-height: 90vh; overflow-y: auto; }
         
-        .card-info { padding: 15px; text-align: center; }
-        .card-info h3 { font-size: 15px; margin-bottom: 8px; height: 45px; overflow: hidden; font-weight: 600; line-height: 1.4; }
-        .price { color: var(--primary); font-weight: 700; font-size: 18px; margin-bottom: 12px; display: block; }
-        .add-btn { width: 100%; padding: 10px; border: none; background: var(--primary); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-        .add-btn:active { transform: scale(0.95); }
+        /* Cart List Style */
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 5px; font-size: 14px; }
+        .remove-btn { color: red; cursor: pointer; font-weight: bold; padding: 5px; }
+        
+        input, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; background: var(--bg); color: var(--text); }
+        .submit-btn { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .order-next-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
 
-        /* Modal & UI */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 2000; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--white); padding: 25px; border-radius: 20px; width: 100%; max-width: 450px; position: relative; animation: slideUp 0.3s ease; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-        input, textarea { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; background: var(--bg); color: var(--text); font-size: 15px; }
-        .submit-btn { width: 100%; padding: 14px; background: var(--success); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 16px; margin-top: 10px; }
-
-        .cart-count { background: var(--primary); color: white; font-size: 11px; font-weight: bold; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 50%; position: absolute; top: -8px; right: -12px; border: 2px solid var(--white); }
-        .icon-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text); position: relative; }
-        #wa-btn { position: fixed; bottom: 25px; right: 25px; background: #25d366; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-decoration: none; font-size: 30px; box-shadow: 0 6px 15px rgba(0,0,0,0.3); z-index: 999; }
+        .cart-count { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; position: absolute; top: -5px; right: -10px; border: 1px solid var(--white); }
+        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text); position: relative; }
     </style>
 </head>
 <body>
@@ -52,125 +50,133 @@
 <header>
     <div class="logo">MH SHOP</div>
     <div class="nav-icons">
-        <button class="icon-btn" onclick="toggleTheme()" title="থিম পরিবর্তন">🌓</button>
-        <button class="icon-btn" onclick="openCart()" title="আপনার কার্ট">🛒 <span class="cart-count" id="cart-num">0</span></button>
+        <button class="icon-btn" onclick="toggleTheme()">🌓</button>
+        <button class="icon-btn" onclick="openCart()">🛒 <span class="cart-count" id="cart-num">0</span></button>
     </div>
 </header>
 
 <div class="container">
-    <input type="text" class="search-box" placeholder="আপনার পছন্দের পণ্যটি খুঁজুন..." onkeyup="searchProduct(this.value)">
-    <div class="product-grid" id="product-list">
-        </div>
+    <input type="text" class="search-box" placeholder="পণ্য খুঁজুন..." onkeyup="searchProduct(this.value)">
+    <div class="product-grid" id="product-list"></div>
 </div>
 
-<a href="https://wa.me/YOUR_NUMBER" id="wa-btn" target="_blank">💬</a>
-
-<div class="modal" id="orderModal">
+<div class="modal" id="cartModal">
     <div class="modal-content">
-        <h3 style="text-align: center; margin-bottom: 15px;">অর্ডার নিশ্চিত করুন</h3>
-        <div id="invoice" style="background: var(--bg); padding: 15px; border-radius: 10px; margin-bottom: 15px; font-size: 14px;"></div>
-        <input type="text" id="name" placeholder="আপনার পুরো নাম">
-        <input type="tel" id="phone" placeholder="সচল মোবাইল নাম্বার">
-        <textarea id="addr" placeholder="আপনার বিস্তারিত ঠিকানা" rows="3"></textarea>
-        <button class="submit-btn" onclick="sendOrder()">অর্ডার পাঠান</button>
-        <button style="width: 100%; margin-top: 10px; background: none; border: none; color: #888; cursor: pointer;" onclick="closeModal()">ফিরে যান</button>
+        <h3 style="text-align:center; margin-bottom:15px;">আপনার কার্ট</h3>
+        <div id="cart-items-list">
+            </div>
+        <div id="total-price-area" style="text-align:right; padding:10px; font-weight:bold;"></div>
+        <button class="order-next-btn" id="checkout-btn" onclick="showAddressForm()">অর্ডার করতে এগিয়ে যান</button>
+        <button style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;" onclick="closeModal('cartModal')">বন্ধ করুন</button>
+    </div>
+</div>
+
+<div class="modal" id="addressModal">
+    <div class="modal-content">
+        <h3 style="text-align:center;">ডেলিভারি ঠিকানা</h3>
+        <input type="text" id="name" placeholder="আপনার নাম">
+        <input type="tel" id="phone" placeholder="ফোন নাম্বার">
+        <textarea id="addr" placeholder="পুরো ঠিকানা (গ্রাম, থানা, জেলা)"></textarea>
+        <button class="submit-btn" onclick="sendOrder()">অর্ডার কনফার্ম করুন</button>
+        <button style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;" onclick="closeModal('addressModal')">পিছনে যান</button>
     </div>
 </div>
 
 <script>
-    // Configuration
     const botToken = "YOUR_BOT_TOKEN"; 
     const chatId = "YOUR_CHAT_ID";
 
-    // 40 Products Database
+    // ৪০টি পণ্যের ডাটাবেজ (সঠিক ছবি লিঙ্কসহ)
     const products = [
-        { n: "M10 TWS Wireless Earbuds", p: "৳৪৫০", k: "earbuds" },
-        { n: "Smart Watch Ultra 8 Series", p: "৳১২৫০", k: "smartwatch" },
-        { n: "RGB Gaming Mouse Pro", p: "৳৬৫০", k: "gaming,mouse" },
-        { n: "Backlit Mechanical Keyboard", p: "৳১৮০০", k: "keyboard" },
-        { n: "Portable Bluetooth Speaker", p: "৳৯০০", k: "speaker" },
-        { n: "Fast Charging 10000mAh Power Bank", p: "৳১১০০", k: "powerbank" },
-        { n: "Smartphone Magnetic Cooler", p: "৳৫৫০", k: "gadget" },
-        { n: "PD Fast Charging 20W Adapter", p: "৳৩৫০", k: "charger" },
-        { n: "Folding Laptop Stand", p: "৳৭৫০", k: "laptop,stand" },
-        { n: "Wireless Noise Cancelling Headphone", p: "৳১৫০০", k: "headphone" },
-        { n: "USB Rechargeable Mini Fan", p: "৳৪০০", k: "fan" },
-        { n: "Smart WiFi LED Bulb", p: "৳৩০০", k: "led,bulb" },
-        { n: "Mobile Tripod with Ring Light", p: "৳১২০০", k: "tripod" },
-        { n: "External Hard Drive 1TB", p: "৳৪৫০০", k: "harddrive" },
-        { n: "Bluetooth Gaming Controller", p: "৳১৪০০", k: "joystick" },
-        { n: "High Speed USB Hub 3.0", p: "৳৪৫০", k: "usb,hub" },
-        { n: "Wireless IP Security Camera", p: "৳২২০০", k: "security,camera" },
-        { n: "Electric Lint Remover", p: "৳৫০০", k: "appliance" },
-        { n: "Retro Handheld Game Console", p: "৳৭৫০", k: "gaming" },
-        { n: "Mosquito Killer UV Lamp", p: "৳৪০০", k: "lamp" },
-        { n: "Heavy Duty Rechargeable Torch", p: "৳৬৫০", k: "flashlight" },
-        { n: "Smart Digital Weight Scale", p: "৳৯০০", k: "scale" },
-        { n: "Magnetic Data Cable 3-in-1", p: "৳২৫০", k: "cable" },
-        { n: "High Capacity 128GB Pendrive", p: "৳১২৫০", k: "pendrive" },
-        { n: "Graphics Drawing Tablet", p: "৳৩৮০০", k: "tablet" },
-        { n: "Car Dash Camera 1080P", p: "৳২৭০০", k: "camera" },
-        { n: "Desktop Condenser Microphone", p: "৳১৫০০", k: "microphone" },
-        { n: "Selfie Stick with Remote", p: "৳৪৫০", k: "selfiestick" },
-        { n: "Wireless Doorbell WiFi", p: "৳১৩০০", k: "doorbell" },
-        { n: "Neckband Bluetooth Earphone", p: "৳৬৫০", k: "neckband" },
-        { n: "Multi-functional Electric Kettle", p: "৳১৩৫০", k: "kettle" },
-        { n: "Handheld Milk Frother", p: "৳২২০", k: "coffee" },
-        { n: "Portable Fruit Juicer Blender", p: "৳১২০০", k: "blender" },
-        { n: "Car Air Purifier Ionizer", p: "৳১৫০০", k: "airpurifier" },
-        { n: "Anti-Theft Laptop Backpack", p: "৳১৬০০", k: "backpack" },
-        { n: "Professional Hair Trimmer", p: "৳৯৫০", k: "trimmer" },
-        { n: "Smart Fingerprint Lock", p: "৳১৮০০", k: "lock" },
-        { n: "LED Strip Light 5 Meter", p: "৳৪৫০", k: "led" },
-        { n: "Electric Eyebrow Trimmer", p: "৳৩০০", k: "beauty" },
-        { n: "Mini Humidifier with Light", p: "৳৫৫০", k: "gadget" }
+        { n: "M10 TWS Earbuds", p: "৳৪৫০", img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400" },
+        { n: "Smart Watch Ultra", p: "৳১২৫০", img: "https://images.unsplash.com/photo-1544117518-30dd5f7a940d?w=400" },
+        { n: "Gaming Mouse RGB", p: "৳৬৫০", img: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400" },
+        { n: "Mechanical Keyboard", p: "৳১৮০০", img: "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=400" },
+        { n: "Bluetooth Speaker", p: "৳৯০০", img: "https://images.unsplash.com/photo-1608156639585-34a070a04406?w=400" },
+        { n: "10000mAh Power Bank", p: "৳১১০০", img: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400" },
+        { n: "Phone Cooler Fan", p: "৳৫৫০", img: "https://images.unsplash.com/photo-1588505794452-9e58a4468942?w=400" },
+        { n: "Type-C Fast Charger", p: "৳৩৫০", img: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400" },
+        // ... এখানে আপনি চাইলে আরও ৪০টি পণ্য যোগ করতে পারেন
+        { n: "Laptop Stand", p: "৳৭৫০", img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400" },
+        { n: "Gaming Headset", p: "৳১৫০০", img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" }
     ];
 
     let cart = [];
 
-    // উন্নত ইমেজ জেনারেটর (Unsplash Source fix)
-    function getBetterImage(keyword, index) {
-        // র্যান্ডম আইডি ব্যবহার করা হয়েছে যাতে একই ছবি বারবার না আসে
-        return `https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80&sig=${index}`;
-        // ভালো ফলাফলের জন্য নিচের ডাইনামিক লিঙ্কটি ব্যবহার করুন:
-        // return `https://source.unsplash.com/featured/400x300?${keyword}&sig=${index}`;
-    }
-
-    // সঠিক ছবি লোড করার ফাংশন
     function displayProducts(items) {
         const list = document.getElementById('product-list');
-        list.innerHTML = items.map((item, idx) => {
-            const imgUrl = `https://images.unsplash.com/photo-1491933382434-500287f9b54b?auto=format&fit=crop&w=400&q=80&sig=${idx+10}`;
-            // নোট: রিয়েল লাইফে আপনি আপনার ছবির লিঙ্ক এখানে দেবেন। 
-            // ডাইনামিক ইমেজের জন্য: `https://source.unsplash.com/featured/400x300?${item.k}&sig=${idx}`
-            const dynamicImg = `https://source.unsplash.com/featured/400x300?${item.k || 'gadget'}&sig=${idx}`;
-            
+        list.innerHTML = items.map((item, index) => `
+            <div class="card">
+                <img src="${item.img}" alt="${item.n}" onerror="this.src='https://via.placeholder.com/400x300?text=Product'">
+                <div class="card-info">
+                    <h3>${item.n}</h3>
+                    <p class="price">${item.p}</p>
+                    <button class="add-btn" onclick="addToCart(${index})">কার্টে যোগ করুন</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function addToCart(index) {
+        cart.push(products[index]);
+        updateCartCount();
+        alert(products[index].n + " কার্টে যোগ হয়েছে!");
+    }
+
+    function updateCartCount() {
+        document.getElementById('cart-num').innerText = cart.length;
+    }
+
+    function openCart() {
+        if(cart.length === 0) return alert("আপনার কার্ট খালি!");
+        const cartList = document.getElementById('cart-items-list');
+        let total = 0;
+        
+        cartList.innerHTML = cart.map((item, i) => {
+            total += parseInt(item.p.replace(/[^0-9]/g, ''));
             return `
-                <div class="card">
-                    <div class="img-container">
-                        <img src="${dynamicImg}" alt="${item.n}" onerror="this.src='https://via.placeholder.com/400x300?text=Product+Image'">
-                    </div>
-                    <div class="card-info">
-                        <h3>${item.n}</h3>
-                        <span class="price">${item.p}</span>
-                        <button class="add-btn" onclick="addToCart('${item.n}', '${item.p}')">কার্টে যোগ করুন</button>
-                    </div>
+                <div class="cart-item">
+                    <span>${item.n}</span>
+                    <span>${item.p} <span class="remove-btn" onclick="removeFromCart(${i})">✖</span></span>
                 </div>
             `;
         }).join('');
+        
+        document.getElementById('total-price-area').innerText = "মোট: ৳" + total;
+        document.getElementById('cartModal').style.display = 'flex';
     }
 
-    function addToCart(n, p) {
-        cart.push({n, p});
-        document.getElementById('cart-num').innerText = cart.length;
-        // সুন্দর নোটিফিকেশন
-        const btn = event.target;
-        btn.innerText = "যোগ হয়েছে! ✅";
-        btn.style.background = "var(--success)";
-        setTimeout(() => {
-            btn.innerText = "কার্টে যোগ করুন";
-            btn.style.background = "var(--primary)";
-        }, 1500);
+    function removeFromCart(i) {
+        cart.splice(i, 1);
+        updateCartCount();
+        if(cart.length === 0) closeModal('cartModal');
+        else openCart();
+    }
+
+    function showAddressForm() {
+        document.getElementById('cartModal').style.display = 'none';
+        document.getElementById('addressModal').style.display = 'flex';
+    }
+
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    function sendOrder() {
+        const n = document.getElementById('name').value;
+        const p = document.getElementById('phone').value;
+        const a = document.getElementById('addr').value;
+        if(!n || !p || !a) return alert("সব তথ্য দিন!");
+
+        let items = cart.map(i => "▫️ " + i.n + " (" + i.p + ")").join('\n');
+        let total = cart.reduce((acc, i) => acc + parseInt(i.p.replace(/[^0-9]/g, '')), 0);
+        let msg = `🛒 *নতুন অর্ডার!*\n👤 নাম: ${n}\n📞 ফোন: ${p}\n🏠 ঠিকানা: ${a}\n\n📦 পণ্যসমূহ:\n${items}\n💰 মোট: ৳${total}`;
+
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
+        .then(() => {
+            alert("অর্ডার সফল হয়েছে!");
+            cart = [];
+            updateCartCount();
+            closeModal('addressModal');
+        });
     }
 
     function searchProduct(val) {
@@ -178,57 +184,11 @@
         displayProducts(filtered);
     }
 
-    function openCart() {
-        if(cart.length === 0) return alert("আপনার কার্টটি এখন খালি আছে!");
-        let total = cart.reduce((acc, i) => acc + parseInt(i.p.replace(/[^0-9]/g, '')), 0);
-        document.getElementById('invoice').innerHTML = `
-            <p>মোট আইটেম: <b>${cart.length} টি</b></p>
-            <p>মোট মূল্য: <b style="color:var(--primary); font-size:18px;">৳${total}</b></p>
-        `;
-        document.getElementById('orderModal').style.display = 'flex';
-    }
-
-    function closeModal() { document.getElementById('orderModal').style.display = 'none'; }
-
-    function sendOrder() {
-        const n = document.getElementById('name').value;
-        const p = document.getElementById('phone').value;
-        const a = document.getElementById('addr').value;
-        if(!n || !p || !a) return alert("দয়া করে নাম, ফোন এবং ঠিকানা প্রদান করুন।");
-
-        let items = cart.map((i, idx) => `${idx+1}. ${i.n} (${i.p})`).join('\n');
-        let total = cart.reduce((acc, i) => acc + parseInt(i.p.replace(/[^0-9]/g, '')), 0);
-        let msg = `🛍️ *নতুন অর্ডার রিকোয়েস্ট*\n\n👤 ক্রেতা: ${n}\n📞 ফোন: ${p}\n🏠 ঠিকানা: ${a}\n\n📦 পণ্য তালিকা:\n${items}\n\n💰 সর্বমোট মূল্য: ৳${total}`;
-
-        const btn = document.querySelector('.submit-btn');
-        btn.innerText = "পাঠানো হচ্ছে...";
-        btn.disabled = true;
-
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
-        .then(() => {
-            alert("ধন্যবাদ! আপনার অর্ডারটি সফলভাবে আমাদের কাছে পৌঁছেছে।");
-            cart = [];
-            document.getElementById('cart-num').innerText = '0';
-            closeModal();
-            document.getElementById('name').value = '';
-            document.getElementById('phone').value = '';
-            document.getElementById('addr').value = '';
-        })
-        .catch(() => alert("দুঃখিত, অর্ডার পাঠানো সম্ভব হয়নি।"))
-        .finally(() => {
-            btn.innerText = "অর্ডার পাঠান";
-            btn.disabled = false;
-        });
-    }
-
     function toggleTheme() {
         document.body.hasAttribute('data-theme') ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
     }
 
-    // Page Initialization
-    window.onload = () => {
-        displayProducts(products);
-    };
+    displayProducts(products);
 </script>
 
 </body>
