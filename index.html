@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MH SHOP - Advanced Cart</title>
+    <title>MH SHOP - Premium Edition</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary: #ff4757; --success: #2ed573; --white: #ffffff; --bg: #f4f6f9; --text: #333; }
@@ -14,7 +14,6 @@
 
         header { background: var(--white); padding: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .logo { font-size: 22px; font-weight: bold; color: var(--primary); }
-        .nav-icons { display: flex; gap: 15px; align-items: center; }
         
         .container { padding: 15px; max-width: 1200px; margin: auto; }
         .search-box { width: 100%; padding: 12px; border: none; border-radius: 10px; margin-bottom: 20px; background: var(--white); color: var(--text); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
@@ -22,27 +21,36 @@
         .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
 
-        .card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        /* কার্ড এনিমেশন */
+        .card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; animation: fadeIn 0.5s ease-in; }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
         .card img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
         .card-info { padding: 10px; text-align: center; }
         .card-info h3 { font-size: 14px; margin-bottom: 5px; height: 40px; overflow: hidden; }
         .price { color: var(--primary); font-weight: bold; font-size: 16px; margin-bottom: 8px; }
         .add-btn { width: 100%; padding: 8px; border: none; background: var(--primary); color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
 
-        /* Modal Settings */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 15px; }
-        .modal-content { background: var(--white); padding: 20px; border-radius: 15px; width: 100%; max-width: 400px; position: relative; max-height: 90vh; overflow-y: auto; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ডায়লগ/মডাল ডিজাইন */
+        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--white); padding: 20px; border-radius: 15px; width: 100%; max-width: 420px; position: relative; max-height: 85vh; overflow-y: auto; animation: zoomIn 0.3s ease; }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
-        /* Cart List Style */
-        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 5px; font-size: 14px; }
-        .remove-btn { color: red; cursor: pointer; font-weight: bold; padding: 5px; }
+        /* কার্ট আইটেম ডিজাইন (ছবিসহ) */
+        .cart-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #eee; margin-bottom: 5px; }
+        .cart-item img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
+        .cart-details { flex: 1; }
+        .cart-details h4 { font-size: 13px; margin: 0; }
+        .cart-details p { font-size: 12px; color: var(--primary); font-weight: bold; }
+        .remove-btn { color: #ff4757; cursor: pointer; font-size: 18px; padding: 5px; }
         
         input, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; background: var(--bg); color: var(--text); }
-        .submit-btn { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .submit-btn { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
         .order-next-btn { width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px; }
 
         .cart-count { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; position: absolute; top: -5px; right: -10px; border: 1px solid var(--white); }
-        .icon-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text); position: relative; }
+        .icon-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text); position: relative; }
     </style>
 </head>
 <body>
@@ -62,69 +70,83 @@
 
 <div class="modal" id="cartModal">
     <div class="modal-content">
-        <h3 style="text-align:center; margin-bottom:15px;">আপনার কার্ট</h3>
+        <h3 style="text-align:center; margin-bottom:15px; border-bottom: 2px solid var(--primary); padding-bottom: 5px;">শপিং কার্ট 🛒</h3>
         <div id="cart-items-list">
             </div>
-        <div id="total-price-area" style="text-align:right; padding:10px; font-weight:bold;"></div>
-        <button class="order-next-btn" id="checkout-btn" onclick="showAddressForm()">অর্ডার করতে এগিয়ে যান</button>
-        <button style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;" onclick="closeModal('cartModal')">বন্ধ করুন</button>
+        <div id="total-price-area" style="text-align:right; padding:15px; font-weight:bold; font-size: 18px; color: var(--text);"></div>
+        <button class="order-next-btn" onclick="showAddressForm()">অর্ডার কনফার্ম করতে এগিয়ে যান</button>
+        <button style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;" onclick="closeModal('cartModal')">চালিয়ে যান</button>
     </div>
 </div>
 
 <div class="modal" id="addressModal">
     <div class="modal-content">
-        <h3 style="text-align:center;">ডেলিভারি ঠিকানা</h3>
+        <h3 style="text-align:center;">ডেলিভারি ডিটেইলস</h3>
         <input type="text" id="name" placeholder="আপনার নাম">
-        <input type="tel" id="phone" placeholder="ফোন নাম্বার">
-        <textarea id="addr" placeholder="পুরো ঠিকানা (গ্রাম, থানা, জেলা)"></textarea>
-        <button class="submit-btn" onclick="sendOrder()">অর্ডার কনফার্ম করুন</button>
+        <input type="tel" id="phone" placeholder="সচল মোবাইল নাম্বার">
+        <textarea id="addr" placeholder="বিস্তারিত ঠিকানা (গ্রাম/শহর, জেলা)"></textarea>
+        <button class="submit-btn" onclick="sendOrder()">অর্ডার প্লেস করুন</button>
         <button style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;" onclick="closeModal('addressModal')">পিছনে যান</button>
     </div>
 </div>
 
 <script>
+    // আপনার গিটহাব কনফিগারেশন
+    const githubUser = "YOUR_GITHUB_USERNAME"; 
+    const repoName = "YOUR_REPO_NAME";
     const botToken = "YOUR_BOT_TOKEN"; 
     const chatId = "YOUR_CHAT_ID";
 
-    // ৪০টি পণ্যের ডাটাবেজ (সঠিক ছবি লিঙ্কসহ)
-    const products = [
-        { n: "M10 TWS Earbuds", p: "৳৪৫০", img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400" },
-        { n: "Smart Watch Ultra", p: "৳১২৫০", img: "https://images.unsplash.com/photo-1544117518-30dd5f7a940d?w=400" },
-        { n: "Gaming Mouse RGB", p: "৳৬৫০", img: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=400" },
-        { n: "Mechanical Keyboard", p: "৳১৮০০", img: "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=400" },
-        { n: "Bluetooth Speaker", p: "৳৯০০", img: "https://images.unsplash.com/photo-1608156639585-34a070a04406?w=400" },
-        { n: "10000mAh Power Bank", p: "৳১১০০", img: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?w=400" },
-        { n: "Phone Cooler Fan", p: "৳৫৫০", img: "https://images.unsplash.com/photo-1588505794452-9e58a4468942?w=400" },
-        { n: "Type-C Fast Charger", p: "৳৩৫০", img: "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=400" },
-        // ... এখানে আপনি চাইলে আরও ৪০টি পণ্য যোগ করতে পারেন
-        { n: "Laptop Stand", p: "৳৭৫০", img: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?w=400" },
-        { n: "Gaming Headset", p: "৳১৫০০", img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400" }
+    // আপনার স্ক্রিনশট অনুযায়ী ২০টি পণ্যের নাম (এগুলো গিটহাবের ফাইলের নামের সাথে মিল থাকতে হবে)
+    const baseProducts = [
+        { n: "M10 TWS", p: "৳৪৫০", img: "M10 TWS.png" },
+        { n: "M19 TWS", p: "৳৫৫০", img: "M19 TWS.png" },
+        { n: "M28 TWS", p: "৳৬৫০", img: "M28 TWS.png" },
+        { n: "M90 Pro", p: "৳৭০০", img: "M90 Pro.png" },
+        { n: "T500 Smart Watch", p: "৳৮৫০", img: "T500 Smart Watch.png" },
+        { n: "T800 Ultra", p: "৳১২৫০", img: "T800 Ultra.png" },
+        { n: "Watch 8 Ultra", p: "৳১৩৫০", img: "Watch 8 Ultra.png" },
+        { n: "D20 Smart Watch", p: "৳৪০০", img: "D20 Smart Watch.png" },
+        { n: "Gaming Mouse Pro", p: "৳৬০০", img: "Gaming Mouse Pro.png" },
+        { n: "Mechanical Keyboard", p: "৳১৭০০", img: "Mechanical Keyboard.png" },
+        { n: "Bluetooth Speaker Z7", p: "৳৯৫০", img: "Bluetooth Speaker Z7.png" },
+        { n: "Power Bank 20000mAh", p: "৳১৮০০", img: "Power Bank 20000mAh.png" },
+        { n: "iPhone Fast Charger", p: "৳৪৫০", img: "iPhone Fast Charger.png" },
+        { n: "Samsung 25W Adapter", p: "৳৫৫০", img: "Samsung 25W Adapter.png" },
+        { n: "Ring Light 12 Inch", p: "৳১১০০", img: "Ring Light 12 Inch.png" },
+        { n: "Selfie Stick Tripod", p: "৳৫০০", img: "Selfie Stick Tripod.png" },
+        { n: "WiFi IP Camera", p: "৳২১০০", img: "WiFi IP Camera.png" },
+        { n: "Mini Pocket Fan", p: "৳৩৫০", img: "Mini Pocket Fan.png" },
+        { n: "Neckband Pro 5.0", p: "৳৭৫০", img: "Neckband Pro 5.0.png" },
+        { n: "Airpods Pro Clone", p: "৳১২০০", img: "Airpods Pro Clone.png" }
     ];
+
+    // ২০টি আইটেমকে ডাবল করে ৪০টি করা হলো
+    const products = [...baseProducts, ...baseProducts.map(item => ({...item, n: item.n + " (Stock 2)"}))];
 
     let cart = [];
 
     function displayProducts(items) {
         const list = document.getElementById('product-list');
-        list.innerHTML = items.map((item, index) => `
-            <div class="card">
-                <img src="${item.img}" alt="${item.n}" onerror="this.src='https://via.placeholder.com/400x300?text=Product'">
-                <div class="card-info">
-                    <h3>${item.n}</h3>
-                    <p class="price">${item.p}</p>
-                    <button class="add-btn" onclick="addToCart(${index})">কার্টে যোগ করুন</button>
+        list.innerHTML = items.map((item, index) => {
+            const rawImgUrl = `https://raw.githubusercontent.com/${githubUser}/${repoName}/main/${encodeURIComponent(item.img)}`;
+            return `
+                <div class="card">
+                    <img src="${rawImgUrl}" alt="${item.n}" onerror="this.src='https://via.placeholder.com/400x300?text=Image+Not+Found'">
+                    <div class="card-info">
+                        <h3>${item.n}</h3>
+                        <p class="price">${item.p}</p>
+                        <button class="add-btn" onclick="addToCart(${index})">কার্টে যোগ করুন</button>
+                    </div>
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     function addToCart(index) {
         cart.push(products[index]);
-        updateCartCount();
-        alert(products[index].n + " কার্টে যোগ হয়েছে!");
-    }
-
-    function updateCartCount() {
         document.getElementById('cart-num').innerText = cart.length;
+        alert(products[index].n + " কার্টে যোগ হয়েছে!");
     }
 
     function openCart() {
@@ -134,21 +156,26 @@
         
         cartList.innerHTML = cart.map((item, i) => {
             total += parseInt(item.p.replace(/[^0-9]/g, ''));
+            const rawImgUrl = `https://raw.githubusercontent.com/${githubUser}/${repoName}/main/${encodeURIComponent(item.img)}`;
             return `
                 <div class="cart-item">
-                    <span>${item.n}</span>
-                    <span>${item.p} <span class="remove-btn" onclick="removeFromCart(${i})">✖</span></span>
+                    <img src="${rawImgUrl}" alt="img" onerror="this.src='https://via.placeholder.com/50x50'">
+                    <div class="cart-details">
+                        <h4>${item.n}</h4>
+                        <p>${item.p}</p>
+                    </div>
+                    <span class="remove-btn" onclick="removeFromCart(${i})">🗑️</span>
                 </div>
             `;
         }).join('');
         
-        document.getElementById('total-price-area').innerText = "মোট: ৳" + total;
+        document.getElementById('total-price-area').innerText = "মোট মূল্য: ৳" + total;
         document.getElementById('cartModal').style.display = 'flex';
     }
 
     function removeFromCart(i) {
         cart.splice(i, 1);
-        updateCartCount();
+        document.getElementById('cart-num').innerText = cart.length;
         if(cart.length === 0) closeModal('cartModal');
         else openCart();
     }
@@ -164,17 +191,17 @@
         const n = document.getElementById('name').value;
         const p = document.getElementById('phone').value;
         const a = document.getElementById('addr').value;
-        if(!n || !p || !a) return alert("সব তথ্য দিন!");
+        if(!n || !p || !a) return alert("অনুগ্রহ করে সব তথ্য দিন!");
 
-        let items = cart.map(i => "▫️ " + i.n + " (" + i.p + ")").join('\n');
+        let items = cart.map(i => "🔹 " + i.n + " (" + i.p + ")").join('\n');
         let total = cart.reduce((acc, i) => acc + parseInt(i.p.replace(/[^0-9]/g, '')), 0);
-        let msg = `🛒 *নতুন অর্ডার!*\n👤 নাম: ${n}\n📞 ফোন: ${p}\n🏠 ঠিকানা: ${a}\n\n📦 পণ্যসমূহ:\n${items}\n💰 মোট: ৳${total}`;
+        let msg = `🔥 *নতুন অর্ডার রিকোয়েস্ট* 🔥\n\n👤 নাম: ${n}\n📞 ফোন: ${p}\n🏠 ঠিকানা: ${a}\n\n📦 পণ্যসমূহ:\n${items}\n\n💰 মোট: ৳${total}`;
 
         fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
         .then(() => {
-            alert("অর্ডার সফল হয়েছে!");
+            alert("ধন্যবাদ! আপনার অর্ডারটি সফল হয়েছে।");
             cart = [];
-            updateCartCount();
+            document.getElementById('cart-num').innerText = '0';
             closeModal('addressModal');
         });
     }
