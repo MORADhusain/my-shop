@@ -6,7 +6,6 @@
     <title>MH SHOP - Ultimate Gadget Store</title>
     <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        /* আপনার সব CSS স্টাইল এখানে নিখুঁতভাবে রাখা হয়েছে */
         :root { --primary: #ff4757; --success: #2ed573; --white: #ffffff; --bg: #f4f6f9; --text: #333; }
         [data-theme="dark"] { --white: #1e272e; --bg: #0f141a; --text: #f1f2f6; }
         
@@ -34,6 +33,213 @@
         .cat-btn { background: var(--white); padding: 8px 15px; border-radius: 15px; border: 1px solid #ddd; white-space: nowrap; cursor: pointer; color: var(--text); }
         .cat-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
 
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px; margin-bottom: 20px; }
+        .card { background: var(--white); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; }
+        .card img { width: 100%; height: 160px; object-fit: cover; }
+        .info { padding: 10px; text-align: center; }
+        .info h3 { font-size: 14px; margin-bottom: 5px; height: 35px; overflow: hidden; color: var(--text); }
+        .price { color: var(--primary); font-weight: bold; font-size: 16px; display: block; margin: 5px 0; }
+        
+        .btn { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; margin-top: 8px; font-size: 13px; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-light { background: #f1f2f6; color: #333; }
+        
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px); padding: 15px; }
+        .modal { background: var(--white); border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; position: relative; max-height: 80vh; overflow-y: auto; animation: modalFade 0.4s; }
+        @keyframes modalFade { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 28px; cursor: pointer; }
+
+        .item-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .item-row img { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+        .item-actions { display: flex; gap: 5px; }
+        .action-btn { padding: 5px; border-radius: 5px; border: none; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .del-btn { background: #ff4757; color: white; }
+        .order-btn-small { background: var(--success); color: white; }
+
+        .whatsapp-float { position: fixed; bottom: 20px; right: 20px; background: #25d366; color: white; width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; z-index: 1500; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">MH SHOP</div>
+    <div class="nav-tools">
+        <button class="theme-toggle" onclick="toggleTheme()">🌓</button>
+        <button class="cart-btn" onclick="openCart()">🛒 <span id="cartBtnText">কার্ট</span> <span class="cart-count" id="count">0</span></button>
+    </div>
+</header>
+
+<img src="Morad_Hasan.png" class="cover-photo">
+
+<div class="notice-container">
+    <div class="marquee">ঢাকার ভিতরে ডেলিভারি চার্জ ৮৫ টাকা এবং ঢাকার বাহিরে ডেলিভারি চার্জ ১৩০ টাকা পুরো বাংলাদেশ। পছন্দ হলে অবশ্যই অর্ডার করুন!</div>
+</div>
+
+<div class="search-container">
+    <input type="text" id="searchBar" placeholder="পণ্য খুঁজুন..." onkeyup="filterProducts()">
+</div>
+
+<div class="categories">
+    <button class="cat-btn active" onclick="filterCat('All', this)">সব পণ্য</button>
+    <button class="cat-btn" onclick="filterCat('ওয়াচ', this)">স্মার্টওয়াচ</button>
+    <button class="cat-btn" onclick="filterCat('ল্যাপটপ', this)">ল্যাপটপ</button>
+</div>
+
+<div class="grid" id="productGrid">
+    </div>
+
+<div id="cartModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h3 style="margin-bottom: 15px;">🛒 আপনার কার্ট</h3>
+        <div id="cartList"></div>
+        <div id="totalPrice" style="text-align:right; font-weight:bold; padding-top: 15px; color: var(--primary);"></div>
+    </div>
+</div>
+
+<div id="orderModal" class="overlay">
+    <div class="modal">
+        <span class="close-btn" onclick="closeModals()">&times;</span>
+        <h3>📝 অর্ডার নিশ্চিত করুন</h3><br>
+        <input type="text" id="custName" class="btn btn-light" placeholder="আপনার নাম লিখুন">
+        <input type="tel" id="custPhone" class="btn btn-light" placeholder="ফোন নাম্বার লিখুন">
+        <textarea id="custAddr" class="btn btn-light" placeholder="সম্পূর্ণ ঠিকানা লিখুন" rows="3"></textarea>
+        <button class="btn btn-success" onclick="submitOrder()">অর্ডার নিশ্চিত করুন</button>
+    </div>
+</div>
+
+<a href="https://wa.me/8801953051602" class="whatsapp-float">💬</a>
+
+<script>
+    const botToken = "8056895902:AAECIwrBgeAzyUjZPpQ3A4Ku9fDCwv7CQPo";
+    const chatId = "7211983994";
+    const githubUser = "moradhusain";
+    const repoName = "my-shop";
+    
+    let allProducts = [], cart = [], currentOrder = [];
+
+    window.onload = () => {
+        cart = JSON.parse(localStorage.getItem('mhCart') || '[]');
+        updateCounts();
+        fetchProducts();
+        if(localStorage.getItem('theme') === 'dark') document.body.setAttribute('data-theme', 'dark');
+    };
+
+    function toggleTheme() {
+        const theme = document.body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        document.body.setAttribute('data-theme', theme);
+        localStorage.setItem('theme', theme);
+    }
+
+    async function fetchProducts() {
+        try {
+            const res = await fetch(`https://api.github.com/repos/${githubUser}/${repoName}/contents/`);
+            const files = await res.json();
+            allProducts = files.filter(f => f.name.match(/\.(jpg|png|webp|jpeg)$/i) && f.name !== "Morad_Hasan.png").map(f => {
+                let p = f.name.split('.')[0].split('_');
+                return { name: p[0], price: p[1] || '0', img: f.download_url };
+            });
+            renderProducts(allProducts);
+        } catch(e) { console.error("Error fetching products:", e); }
+    }
+
+    function renderProducts(list) {
+        const grid = document.getElementById('productGrid');
+        grid.innerHTML = list.map(p => `
+            <div class="card">
+                <img src="${p.img}">
+                <div class="info">
+                    <h3>${p.name}</h3>
+                    <span class="price">৳ ${p.price}</span>
+                    <button class="btn btn-success" onclick="orderNow('${p.name}','${p.price}')">অর্ডার</button>
+                    <button class="btn btn-light" onclick="addToCart('${p.name}','${p.price}','${p.img}')">কার্টে রাখুন</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function filterProducts() {
+        const term = document.getElementById('searchBar').value.toLowerCase();
+        renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(term)));
+    }
+
+    function filterCat(cat, btn) {
+        document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        renderProducts(cat === 'All' ? allProducts : allProducts.filter(p => p.name.includes(cat)));
+    }
+
+    function addToCart(n, p, i) {
+        cart.push({n, p, i});
+        localStorage.setItem('mhCart', JSON.stringify(cart));
+        updateCounts();
+        alert("কার্টে যোগ করা হয়েছে!");
+    }
+
+    function updateCounts() {
+        document.getElementById('count').innerText = cart.length;
+    }
+
+    function openCart() {
+        const list = document.getElementById('cartList');
+        if(!cart.length) {
+            list.innerHTML = "<p style='text-align:center'>আপনার কার্ট খালি!</p>";
+            document.getElementById('totalPrice').innerText = "";
+        } else {
+            let total = 0;
+            list.innerHTML = cart.map((item, idx) => {
+                total += parseInt(item.p.replace(/[^0-9]/g, '')) || 0;
+                return `
+                    <div class="item-row">
+                        <img src="${item.i}">
+                        <div style="flex:1;"><b>${item.n}</b><br><span style="color:var(--primary)">৳${item.p}</span></div>
+                        <div class="item-actions">
+                            <button class="action-btn order-btn-small" onclick="orderNow('${item.n}','${item.p}')">অর্ডার</button>
+                            <button class="action-btn del-btn" onclick="removeItem(${idx})">ডিলিট</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('totalPrice').innerText = "মোট: ৳" + total;
+        }
+        document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    function removeItem(idx) {
+        cart.splice(idx, 1);
+        localStorage.setItem('mhCart', JSON.stringify(cart));
+        updateCounts();
+        openCart();
+    }
+
+    function orderNow(n, p) {
+        currentOrder = [{n, p}];
+        closeModals();
+        document.getElementById('orderModal').style.display = 'flex';
+    }
+
+    function submitOrder() {
+        const name = document.getElementById('custName').value;
+        const phone = document.getElementById('custPhone').value;
+        const addr = document.getElementById('custAddr').value;
+        if(!name || !phone || !addr) return alert("দয়া করে সব তথ্য পূরণ করুন!");
+
+        let items = currentOrder.map(i => `▫️ ${i.n} (৳${i.p})`).join("\n");
+        let total = currentOrder.reduce((acc, i) => acc + parseInt(i.p.replace(/[^0-9]/g, '')), 0);
+        
+        let msg = `🛍️ *নতুন অর্ডার!*\n\n👤 ক্রেতার নাম: ${name}\n📞 ফোন: ${phone}\n🏠 ঠিকানা: ${addr}\n\n🛒 পণ্য তালিকা:\n${items}\n💰 মোট পণ্য মূল্য: ৳${total}`;
+
+        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
+        .then(() => {
+            alert("অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে!");
+            location.reload();
+        });
+    }
+
+    function closeModals() { document.querySelectorAll('.overlay').forEach(e => e.style.display = 'none'); }
+</script>
+</body>
+</html>
         /* আপনার গ্রিড ডিজাইন ঠিক করা হয়েছে */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px; margin-bottom: 20px; }
         .card { background: var(--white); border-radius: 15px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; }
