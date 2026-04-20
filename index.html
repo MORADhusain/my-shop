@@ -16,7 +16,6 @@
             --search-bg: #e3e3e6;
             --dialog-bg: #ffffff;
             --dialog-text: #1d1d1f;
-            /* নতুন হেডার ব্যাকগ্রাউন্ড ভেরিয়েবল */
             --header-bg: rgba(255, 255, 255, 0.8);
         }
 
@@ -28,7 +27,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* ডার্ক মোড সাপোর্ট */
         body.dark-theme {
             --bg: #000000;
             --card-bg: #1c1c1e;
@@ -47,7 +45,6 @@
             transition: background 0.3s ease;
         }
 
-        /* --- Pull to Refresh Style --- */
         #refresh-container {
             width: 100%;
             height: 0;
@@ -77,7 +74,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- Header Section --- */
         .header {
             background: var(--header-bg);
             backdrop-filter: blur(20px);
@@ -120,7 +116,6 @@
             color: var(--text-main);
         }
 
-        /* --- Category Slider --- */
         .category-scroll {
             display: flex;
             gap: 10px;
@@ -148,7 +143,6 @@
             color: white;
         }
 
-        /* --- App Grid --- */
         .apps-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -262,7 +256,6 @@
             transition: 0.3s;
         }
 
-        /* --- Detail Modal --- */
         .detail-modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -324,7 +317,6 @@
             white-space: pre-wrap;
         }
 
-        /* Modal Styles */
         .modal-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -361,15 +353,14 @@
             0% { transform: scale(0.9); opacity: 0; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* আপডেট ডায়লগ স্টাইল */
+        #updateModal { z-index: 4000; }
     </style>
 </head>
 <body>
-
 <div id="loader"><div class="main-spinner"></div></div>
-
-<div id="refresh-container">
-    <div class="refresh-spinner" id="refresh-spinner"></div>
-</div>
+<div id="refresh-container"><div class="refresh-spinner" id="refresh-spinner"></div></div>
 
 <div class="header">
     <h1 id="storeTitle">AppVault</h1>
@@ -379,10 +370,7 @@
     </div>
 </div>
 
-<div class="category-scroll" id="catSlider">
-    <div class="cat-chip active" onclick="filterCat('all')">সব</div>
-</div>
-
+<div class="category-scroll" id="catSlider"><div class="cat-chip active" onclick="filterCat('all')">সব</div></div>
 <div class="apps-grid" id="appsGrid"></div>
 
 <div class="modal-overlay" id="installModal">
@@ -394,6 +382,15 @@
             <button onclick="closeModal()" style="flex:1; padding:12px; border-radius:15px; border:none; background:#eee; font-weight:600;">পরে</button>
             <button id="finalInstallBtn" style="flex:1; padding:12px; border-radius:15px; border:none; background:var(--primary); color:white; font-weight:600;">ইনস্টল</button>
         </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="updateModal">
+    <div class="modal-content">
+        <div style="font-size: 50px;">🚀</div>
+        <h2 style="margin: 15px 0 5px;">নতুন আপডেট উপলব্ধ!</h2>
+        <p style="color: var(--text-sub); font-size: 14px; margin-bottom: 20px;">অ্যাপের একটি নতুন ভার্সন পাওয়া গেছে। ভালো পারফরম্যান্সের জন্য এখনই আপডেট করুন।</p>
+        <button id="updateNowBtn" style="width:100%; padding:15px; border-radius:15px; border:none; background:var(--primary); color:white; font-weight:700; font-size:16px;">এখনই আপডেট করুন</button>
     </div>
 </div>
 
@@ -417,16 +414,39 @@
 </div>
 
 <div id="toast"></div>
+
 <script>
     const SUPABASE_URL = "https://fbywkbxtedszsifcnngz.supabase.co";
-    const SUPABASE_KEY = "sb_publishable_bA1U7u3q6eQCUi-d75fbHg_imndsQVS";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZieXdrYnh0ZWRzenNpZmNubmd6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjI2NTA3OSwiZXhwIjoyMDkxODQxMDc5fQ.EiZGRv4VShzH8GLVbC84qcabSmFq-reQOMBtg2o61_0";
     
+    // --- আপনার অ্যাপের গোপন কোড (এটি প্যানেলের টার্গেট কোডের সাথে মিললে আপডেট দেখাবে) ---
+    const MY_APP_SECRET_CODE = "v1_old"; 
+
     let apps = [];
     let activeDownloads = {};
     let modalTriggeredDownloadId = null;
     let currentDetailApp = null;
     
-    // --- Pull to Refresh ---
+    // --- ১. একটিভ ইউজার কাউন্ট হিট ---
+    async function hitActiveUser() {
+        try {
+            await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_active_users`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }
+            });
+        } catch (e) { console.log("Analytics Error"); }
+    }
+
+    // --- ২. ডাউনলোড সংখ্যা বাড়ানো ---
+    async function hitDownloadCount() {
+        try {
+            await fetch(`${SUPABASE_URL}/rest/v1/rpc/increment_downloads`, {
+                method: 'POST',
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' }
+            });
+        } catch (e) { console.log("Download Analytics Error"); }
+    }
+
     let startY = 0; let isPulling = false;
     const refreshContainer = document.getElementById('refresh-container');
     const refreshSpinner = document.getElementById('refresh-spinner');
@@ -467,23 +487,27 @@
                 document.documentElement.style.setProperty('--dialog-bg', s.dialog_bg_color);
                 document.documentElement.style.setProperty('--dialog-text', s.dialog_text_color);
                 
-                // --- নতুন কালার ইমপ্লিমেন্টেশন ---
-                if (s.main_bg_color) {
-                    document.documentElement.style.setProperty('--bg', s.main_bg_color);
-                }
-                if (s.header_bg_color) {
-                    document.documentElement.style.setProperty('--header-bg', s.header_bg_color);
-                }
+                if (s.main_bg_color) document.documentElement.style.setProperty('--bg', s.main_bg_color);
+                if (s.header_bg_color) document.documentElement.style.setProperty('--header-bg', s.header_bg_color);
                 
                 if(s.is_dark_mode) document.body.classList.add('dark-theme');
                 else document.body.classList.remove('dark-theme');
+
+                // --- স্মার্ট আপডেট চেক লজিক ---
+                if(s.update_switch === true && s.target_secret_code === MY_APP_SECRET_CODE) {
+                    document.getElementById('updateModal').style.display = 'flex';
+                    document.getElementById('updateNowBtn').onclick = () => {
+                        if (typeof Android !== 'undefined') Android.openUrl(s.update_link);
+                        else window.open(s.update_link);
+                    };
+                }
             }
         } catch (e) { console.log("Settings Error"); }
     }
 
     async function fetchApps() {
         try {
-            const res = await fetch(`${SUPABASE_URL}/rest/v1/apps?select=*&is_active=eq.true&order=id.asc`, {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/apps?select=*&order=id.asc`, {
                 headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
             });
             apps = await res.json();
@@ -537,6 +561,10 @@
 
     function startDownload(app, fromModal) {
         const id = app.id; if(activeDownloads[id]) return; activeDownloads[id] = true;
+        
+        // ডাউনলোড শুরু হলে এনালিটিক্সে হিট দিবে
+        hitDownloadCount();
+
         if(fromModal) {
             modalTriggeredDownloadId = id;
             document.getElementById('detailInitialButtons').style.display = 'none';
@@ -597,7 +625,10 @@
     document.getElementById('searchInput').oninput = e => { renderApps(apps.filter(a => a.name.toLowerCase().includes(e.target.value.toLowerCase()))); };
     function showToast(msg) { const t = document.getElementById('toast'); t.innerText = msg; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
     
-    applySettings(); fetchApps();
+    // শুরুতেই সেটিংস, অ্যাপস এবং ইউজার অ্যানালিটিক্স লোড করা
+    applySettings(); 
+    fetchApps();
+    hitActiveUser(); 
 </script>
 </body>
 </html>
