@@ -2,217 +2,665 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MH SHOP - GitHub Direct Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Premium App Store</title>
     <style>
-        :root { --primary: #ff4757; --success: #2ed573; --white: #ffffff; --bg: #f4f6f9; --text: #333; }
-        [data-theme="dark"] { --white: #1e272e; --bg: #0f141a; --text: #f1f2f6; }
-        
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Hind Siliguri', sans-serif; }
-        body { background: var(--bg); color: var(--text); transition: 0.3s; }
+        :root {
+            --primary: #007aff;
+            --success: #34c759;
+            --danger: #ff3b30;
+            --bg: #f5f5f7;
+            --card-bg: #ffffff;
+            --text-main: #1d1d1f;
+            --text-sub: #86868b;
+        }
 
-        header { background: var(--white); padding: 15px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 22px; font-weight: bold; color: var(--primary); }
-        
-        .container { padding: 15px; max-width: 1200px; margin: auto; }
-        .search-box { width: 100%; padding: 12px; border: none; border-radius: 10px; margin-bottom: 20px; background: var(--white); color: var(--text); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-        .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        @media (min-width: 768px) { .product-grid { grid-template-columns: repeat(4, 1fr); } }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding-bottom: 30px;
+            overflow-x: hidden;
+            overscroll-behavior-y: contain;
+        }
 
-        /* কার্ড ডিজাইন ও এনিমেশন */
-        .card { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; animation: fadeIn 0.6s ease-out; }
-        .card:hover { transform: translateY(-5px); }
-        .card img { width: 100%; height: 160px; object-fit: cover; background: #eee; }
-        .card-info { padding: 10px; text-align: center; }
-        .card-info h3 { font-size: 14px; margin-bottom: 5px; height: 40px; overflow: hidden; }
-        .price { color: var(--primary); font-weight: bold; font-size: 16px; margin-bottom: 8px; }
-        .add-btn { width: 100%; padding: 8px; border: none; background: var(--primary); color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
+        /* --- Pull to Refresh Style --- */
+        #refresh-container {
+            width: 100%;
+            height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: transparent;
+            transition: height 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        .refresh-spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid #d1d1d6;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            transform: rotate(0deg);
+            transition: transform 0.1s linear;
+        }
 
-        /* কার্ট মডাল ডিজাইন */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 2000; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--white); padding: 20px; border-radius: 15px; width: 100%; max-width: 420px; position: relative; max-height: 80vh; overflow-y: auto; animation: zoomIn 0.3s ease; }
-        @keyframes zoomIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .refresh-spinner.loading {
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- Header Section --- */
+        .header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 20px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 0.5px solid #d1d1d6;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 15px;
+        }
+
+        .search-container {
+            background: #e3e3e6;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+        }
+
+        .search-container input {
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            font-size: 16px;
+            margin-left: 10px;
+        }
+
+        /* --- Category Slider --- */
+        .category-scroll {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 15px 20px;
+            scrollbar-width: none;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+
+        .cat-chip {
+            background: var(--card-bg);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            color: var(--primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .cat-chip.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* --- App Grid --- */
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .app-card {
+            background: var(--card-bg);
+            border-radius: 22px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .app-card:active { transform: scale(0.98); }
+
+        .app-icon {
+            width: 75px;
+            height: 75px;
+            border-radius: 18px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            pointer-events: none;
+        }
+
+        .app-emoji-icon {
+            width: 75px;
+            height: 75px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), #5856d6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 35px;
+            margin-bottom: 10px;
+            color: white;
+            pointer-events: none;
+        }
+
+        .app-name {
+            font-size: 14px;
+            font-weight: 700;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            pointer-events: none;
+        }
+
+        .app-meta {
+            font-size: 11px;
+            color: var(--text-sub);
+            margin: 4px 0 10px;
+            pointer-events: none;
+        }
+
+        .btn-install {
+            background: #f0f0f7;
+            color: var(--primary);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+
+        .btn-install.downloading {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-cancel {
+            margin-top: 8px;
+            background: #ffebeb;
+            color: var(--danger);
+            border: none;
+            padding: 6px 15px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            width: 90%;
+            display: none;
+        }
+
+        .progress-box {
+            width: 100%;
+            height: 4px;
+            background: #e5e5ea;
+            border-radius: 10px;
+            margin-top: 10px;
+            display: none;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--success);
+            transition: 0.3s;
+        }
+
+        /* --- New Detail Modal Styles with Screenshots --- */
+        .detail-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(12px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2100;
+            padding: 20px;
+        }
+
+        .detail-modal-card {
+            background: white;
+            border-radius: 36px;
+            width: 100%;
+            max-width: 380px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px 20px;
+            text-align: center;
+            animation: pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            scrollbar-width: none;
+        }
+        .detail-modal-card::-webkit-scrollbar { display: none; }
+
+        .detail-icon {
+            margin: 0 auto 12px;
+            width: 90px;
+            height: 90px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .screenshot-container {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+            margin: 15px 0;
+            scrollbar-width: none;
+        }
+        .screenshot-container::-webkit-scrollbar { display: none; }
         
-        .cart-item { display: flex; align-items: center; gap: 12px; padding: 10px; border-bottom: 1px solid #eee; }
-        .cart-item img { width: 55px; height: 55px; border-radius: 6px; object-fit: cover; }
-        .cart-details { flex: 1; }
-        .cart-details h4 { font-size: 13px; margin: 0; }
-        .cart-details p { font-size: 14px; color: var(--primary); font-weight: bold; }
-        .remove-btn { color: #ff4757; cursor: pointer; font-size: 20px; }
+        .screenshot-img {
+            width: 140px;
+            height: 250px;
+            border-radius: 15px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: #eee;
+            border: 1px solid #eee;
+        }
+
+        .detail-description {
+            font-size: 14px;
+            line-height: 1.5;
+            color: var(--text-main);
+            background: #f8f8fc;
+            padding: 15px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+
+        /* Modal Original Styles Continued */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 30px;
+            width: 100%;
+            max-width: 350px;
+            padding: 30px;
+            text-align: center;
+            animation: pop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .modal-button-group { display: flex; gap: 12px; margin-top: 8px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 30px; font-weight: 700; font-size: 16px; border: none; cursor: pointer; }
+        .modal-install-btn { background: var(--primary); color: white; }
+        .modal-cancel-btn { background: #e9e9ef; color: #1d1d1f; }
         
-        input, textarea { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; background: var(--bg); color: var(--text); }
-        .submit-btn { width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        
-        .cart-count { background: var(--primary); color: white; font-size: 10px; padding: 2px 6px; border-radius: 50%; position: absolute; top: -5px; right: -10px; border: 1px solid var(--white); }
-        .icon-btn { background: none; border: none; font-size: 22px; cursor: pointer; color: var(--text); position: relative; }
+        .modal-progress-area { margin: 15px 0 10px; display: none; }
+        .modal-progress-bar-bg { background: #e5e5ea; border-radius: 12px; height: 6px; overflow: hidden; margin: 12px 0; }
+        .modal-progress-fill { width: 0%; height: 100%; background: var(--success); transition: 0.2s; }
+        .modal-cancel-download-btn { background: #ffebeb; color: var(--danger); border: none; padding: 10px; border-radius: 30px; font-weight: 600; width: 100%; display: none; cursor: pointer; }
+
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 12px 25px; border-radius: 25px; font-size: 14px; z-index: 3000; display: none; }
+        #loader { position: fixed; top:0; left:0; width:100%; height:100%; background: white; display: flex; justify-content: center; align-items: center; z-index: 9999; }
+        .main-spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        @keyframes pop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo">MH SHOP</div>
-    <div class="nav-icons">
-        <button class="icon-btn" onclick="toggleTheme()">🌓</button>
-        <button class="icon-btn" onclick="openCart()">🛒 <span class="cart-count" id="cart-num">0</span></button>
-    </div>
-</header>
+<div id="loader"><div class="main-spinner"></div></div>
 
-<div class="container">
-    <input type="text" class="search-box" placeholder="পণ্য খুঁজুন..." onkeyup="searchProduct(this.value)">
-    <div class="product-grid" id="product-list">
-        <p style="text-align: center; grid-column: 1/-1; padding: 20px;">পণ্য লোড হচ্ছে...</p>
+<div id="refresh-container">
+    <div class="refresh-spinner" id="refresh-spinner"></div>
+</div>
+
+<div class="header">
+    <h1 id="storeTitle">AppVault</h1>
+    <div class="search-container">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="অ্যাপ সার্চ করুন...">
     </div>
 </div>
 
-<div class="modal" id="cartModal">
+<div class="category-scroll" id="catSlider">
+    <div class="cat-chip active" onclick="filterCat('all')">সব</div>
+</div>
+
+<div class="apps-grid" id="appsGrid"></div>
+
+<div class="modal-overlay" id="installModal">
     <div class="modal-content">
-        <h3 style="text-align:center; margin-bottom:15px; color: var(--primary);">শপিং ঝুড়ি 🛒</h3>
-        <div id="cart-items-list"></div>
-        <div id="total-price-area" style="text-align:right; padding:15px; font-weight:bold; font-size: 18px;"></div>
-        <button class="submit-btn" style="background: var(--primary);" onclick="showAddressForm()">অর্ডার করতে এগিয়ে যান</button>
-        <button style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;" onclick="closeModal('cartModal')">চালিয়ে যান</button>
+        <div id="modalIconBox"></div>
+        <h2 id="modalAppName" style="margin: 15px 0 5px;"></h2>
+        <p style="color: var(--text-sub); font-size: 14px; margin-bottom: 20px;">ডাউনলোড সম্পন্ন হয়েছে। ফোনে ইনস্টল করতে চান?</p>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="closeModal()" style="flex:1; padding:12px; border-radius:15px; border:none; background:#eee; font-weight:600;">পরে</button>
+            <button id="finalInstallBtn" style="flex:1; padding:12px; border-radius:15px; border:none; background:var(--primary); color:white; font-weight:600;">ইনস্টল</button>
+        </div>
     </div>
 </div>
 
-<div class="modal" id="addressModal">
-    <div class="modal-content">
-        <h3 style="text-align:center;">ডেলিভারি ঠিকানা</h3>
-        <input type="text" id="custName" placeholder="আপনার নাম">
-        <input type="tel" id="custPhone" placeholder="ফোন নাম্বার">
-        <textarea id="custAddr" placeholder="পুরো ঠিকানা দিন"></textarea>
-        <button class="submit-btn" onclick="sendOrder()">অর্ডার কনফার্ম করুন</button>
-        <button style="width:100%; margin-top:10px; background:none; border:none; color:gray; cursor:pointer;" onclick="closeModal('addressModal')">পিছনে যান</button>
+<div class="detail-modal-overlay" id="detailModal">
+    <div class="detail-modal-card">
+        <div id="detailIconArea" class="detail-icon"></div>
+        <div class="detail-name" id="detailAppName" style="font-size: 22px; font-weight: 800;"></div>
+        <div class="detail-cat-rating" id="detailMeta" style="color: var(--text-sub); font-size: 13px; margin: 5px 0;"></div>
+        
+        <div class="screenshot-container" id="screenshotArea"></div>
+        
+        <div class="detail-description" id="detailDesc"></div>
+        
+        <div id="detailInitialButtons" class="modal-button-group">
+            <button id="detailInstallBtn" class="modal-btn modal-install-btn">ইন্সটল</button>
+            <button onclick="closeDetailModal()" class="modal-btn modal-cancel-btn">বন্ধ</button>
+        </div>
+        
+        <div id="detailProgressArea" class="modal-progress-area">
+            <div class="modal-progress-bar-bg"><div id="detailProgressFill" class="modal-progress-fill"></div></div>
+            <div id="detailPercentText" style="font-weight: bold;">0%</div>
+            <button id="detailCancelDownloadBtn" class="modal-cancel-download-btn">ডাউনলোড বাতিল</button>
+        </div>
     </div>
 </div>
+
+<div id="toast"></div>
 
 <script>
-    // আপনার গিটহাব ইউজার নেম এবং রিপোজিটরি নাম এখানে দিন
-    const githubUser = "Moradhasan"; // উদাহরণ
-    const repoName = "Mh-Shop"; // উদাহরণ
-    const botToken = "YOUR_BOT_TOKEN"; 
-    const chatId = "YOUR_CHAT_ID";
+    const SUPABASE_URL = "https://fbywkbxtedszsifcnngz.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_bA1U7u3q6eQCUi-d75fbHg_imndsQVS";
+    
+    let apps = [];
+    let activeDownloads = {};
+    let modalTriggeredDownloadId = null;
+    let currentDetailApp = null;
+    
+    // --- Pull to Refresh ---
+    let startY = 0;
+    let isPulling = false;
+    const refreshContainer = document.getElementById('refresh-container');
+    const refreshSpinner = document.getElementById('refresh-spinner');
 
-    // আপনার স্ক্রিনশট অনুযায়ী ২০টি ইমেজের সঠিক নাম (এক্সটেনশন সহ)
-    const imageNames = [
-        "M10 TWS.png", "M19 TWS.png", "M28 TWS.png", "M90 Pro.png", 
-        "T500 Smart Watch.png", "T800 Ultra.png", "Watch 8 Ultra.png", 
-        "D20 Smart Watch.png", "Gaming Mouse Pro.png", "Mechanical Keyboard.png",
-        "Bluetooth Speaker Z7.png", "Power Bank 20000mAh.png", "iPhone Fast Charger.png",
-        "Samsung 25W Adapter.png", "Ring Light 12 Inch.png", "Selfie Stick Tripod.png",
-        "WiFi IP Camera.png", "Mini Pocket Fan.png", "Neckband Pro 5.0.png", "Airpods Pro Clone.png"
-    ];
+    window.addEventListener('touchstart', (e) => {
+        if (window.scrollY === 0) { startY = e.touches[0].pageY; isPulling = true; }
+    }, { passive: true });
 
-    // ২০টি ইমেজকে দুইবার ব্যবহার করে ৪০টি পণ্য তৈরি
-    const products = [];
-    [...imageNames, ...imageNames].forEach((img, i) => {
-        products.push({
-            id: i,
-            n: img.replace(".png", ""), // ফাইলের নামই পণ্যের নাম
-            p: "৳" + (400 + (i * 20)), // ডেমো প্রাইস (আপনি চাইলে আলাদা করতে পারেন)
-            img: img
-        });
+    window.addEventListener('touchmove', (e) => {
+        if (!isPulling) return;
+        const currentY = e.touches[0].pageY;
+        const diff = (currentY - startY) * 0.4;
+        if (diff > 0) {
+            refreshContainer.style.height = Math.min(diff, 70) + 'px';
+            refreshSpinner.style.transform = `rotate(${diff * 5}deg)`;
+            refreshContainer.style.transition = 'none';
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', async () => {
+        if (!isPulling) return;
+        isPulling = false;
+        const currentHeight = parseInt(refreshContainer.style.height);
+        if (currentHeight >= 60) {
+            refreshContainer.style.transition = 'height 0.3s ease';
+            refreshContainer.style.height = '60px';
+            refreshSpinner.classList.add('loading');
+            await applySettings();
+            await fetchApps();
+            setTimeout(() => {
+                refreshSpinner.classList.remove('loading');
+                refreshContainer.style.height = '0';
+                showToast("আপডেট করা হয়েছে");
+            }, 800);
+        } else {
+            refreshContainer.style.transition = 'height 0.3s ease';
+            refreshContainer.style.height = '0';
+        }
     });
 
-    let cart = [];
-
-    function displayProducts(items) {
-        const list = document.getElementById('product-list');
-        list.innerHTML = items.map(item => {
-            // গিটহাব Raw লিঙ্ক তৈরি
-            const imgUrl = `https://raw.githubusercontent.com/${githubUser}/${repoName}/main/${encodeURIComponent(item.img)}`;
-            return `
-                <div class="card">
-                    <img src="${imgUrl}" alt="${item.n}" onerror="this.src='https://via.placeholder.com/400x300?text=No+Image'">
-                    <div class="card-info">
-                        <h3>${item.n}</h3>
-                        <p class="price">${item.p}</p>
-                        <button class="add-btn" onclick="addToCart(${item.id})">কার্টে যোগ করুন</button>
-                    </div>
-                </div>
-            `;
-        }).join('');
+    // --- Apply Store Settings (Name & Color) ---
+    async function applySettings() {
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/store_settings?id=eq.1`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            });
+            const settings = await res.json();
+            if (settings.length > 0) {
+                const s = settings[0];
+                document.getElementById('storeTitle').innerText = s.store_name;
+                document.title = s.store_name;
+                document.documentElement.style.setProperty('--primary', s.primary_color);
+            }
+        } catch (e) { console.log("Settings Load Error"); }
     }
 
-    function addToCart(id) {
-        const item = products.find(p => p.id === id);
-        cart.push(item);
-        document.getElementById('cart-num').innerText = cart.length;
-        alert(item.n + " যোগ হয়েছে!");
+    async function fetchApps() {
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/apps?select=*&is_active=eq.true&order=id.asc`, {
+                headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+            });
+            apps = await res.json();
+            renderApps(apps);
+            renderCategories();
+            document.getElementById('loader').style.display = 'none';
+        } catch (e) {
+            showToast("সার্ভার সমস্যা!");
+            document.getElementById('loader').style.display = 'none';
+        }
     }
 
-    function openCart() {
-        if(cart.length === 0) return alert("কার্ট খালি!");
-        const cartList = document.getElementById('cart-items-list');
-        let total = 0;
+    function renderCategories() {
+        const cats = ['all', ...new Set(apps.map(a => a.category))];
+        const container = document.getElementById('catSlider');
+        container.innerHTML = cats.map(c => `
+            <div class="cat-chip ${c==='all'?'active':''}" onclick="filterCat('${c}', this)">${c==='all'?'সব':c}</div>
+        `).join('');
+    }
+
+    function renderIconHtml(icon) {
+        if(icon && icon.startsWith('http')) {
+            return `<img src="${icon}" class="app-icon" onerror="this.src='https://cdn-icons-png.flaticon.com/512/5231/5231019.png'">`;
+        }
+        return `<div class="app-emoji-icon">${icon || '📦'}</div>`;
+    }
+
+    function renderApps(data) {
+        const grid = document.getElementById('appsGrid');
+        grid.innerHTML = data.map(app => `
+            <div class="app-card" onclick="openDetailModalById(${app.id})">
+                ${renderIconHtml(app.icon)}
+                <div class="app-name">${escapeHtml(app.name)}</div>
+                <div class="app-meta">${app.category} • ⭐${app.rating}</div>
+                <button class="btn-install" id="btn-${app.id}" onclick="event.stopPropagation(); handleAction(${app.id})">ইন্সটল</button>
+                <button class="btn-cancel" id="cncl-${app.id}" onclick="event.stopPropagation(); cancelDownload(${app.id})">ক্যানসেল</button>
+                <div class="progress-box" id="pbox-${app.id}"><div class="progress-bar" id="pbar-${app.id}"></div></div>
+            </div>
+        `).join('');
+    }
+
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+
+    function openDetailModalById(id) {
+        const app = apps.find(a => a.id === id);
+        if (app) openDetailModal(app);
+    }
+
+    function openDetailModal(app) {
+        currentDetailApp = app;
+        document.getElementById('detailIconArea').innerHTML = renderIconHtml(app.icon);
+        document.getElementById('detailAppName').innerText = app.name;
+        document.getElementById('detailMeta').innerText = `${app.category} • ⭐${app.rating}`;
+        document.getElementById('detailDesc').innerText = app.description || "এই অ্যাপ সম্পর্কে কোনো বিবরণ নেই।";
         
-        cartList.innerHTML = cart.map((item, i) => {
-            total += parseInt(item.p.replace(/[^0-9]/g, ''));
-            const imgUrl = `https://raw.githubusercontent.com/${githubUser}/${repoName}/main/${encodeURIComponent(item.img)}`;
-            return `
-                <div class="cart-item">
-                    <img src="${imgUrl}" alt="img" onerror="this.src='https://via.placeholder.com/50x50'">
-                    <div class="cart-details">
-                        <h4>${item.n}</h4>
-                        <p>${item.p}</p>
-                    </div>
-                    <span class="remove-btn" onclick="removeFromCart(${i})">🗑️</span>
-                </div>
-            `;
-        }).join('');
+        // Render Screenshots
+        const screenshotArea = document.getElementById('screenshotArea');
+        screenshotArea.innerHTML = '';
+        const shots = [app.shot1, app.shot2, app.shot3, app.shot4].filter(s => s && s.startsWith('http'));
+        if(shots.length > 0) {
+            shots.forEach(s => {
+                screenshotArea.innerHTML += `<img src="${s}" class="screenshot-img" onclick="window.open('${s}')">`;
+            });
+            screenshotArea.style.display = 'flex';
+        } else {
+            screenshotArea.style.display = 'none';
+        }
+
+        resetModalToInitial();
         
-        document.getElementById('total-price-area').innerText = "মোট: ৳" + total;
-        document.getElementById('cartModal').style.display = 'flex';
+        document.getElementById('detailInstallBtn').onclick = () => startDownload(app, true);
+        document.getElementById('detailModal').style.display = 'flex';
     }
 
-    function removeFromCart(i) {
-        cart.splice(i, 1);
-        document.getElementById('cart-num').innerText = cart.length;
-        if(cart.length === 0) closeModal('cartModal');
-        else openCart();
+    function handleAction(id) {
+        const app = apps.find(a => a.id === id);
+        if(!activeDownloads[id]) startDownload(app, false);
     }
 
-    function showAddressForm() {
-        document.getElementById('cartModal').style.display = 'none';
-        document.getElementById('addressModal').style.display = 'flex';
+    function startDownload(app, fromModal) {
+        const id = app.id;
+        if(activeDownloads[id]) return;
+        activeDownloads[id] = true;
+        
+        if(fromModal) {
+            modalTriggeredDownloadId = id;
+            document.getElementById('detailInitialButtons').style.display = 'none';
+            document.getElementById('detailProgressArea').style.display = 'block';
+            document.getElementById('detailCancelDownloadBtn').style.display = 'block';
+            document.getElementById('detailCancelDownloadBtn').onclick = () => cancelDownload(id);
+        } else {
+            document.getElementById(`btn-${id}`).innerText = "0%";
+            document.getElementById(`btn-${id}`).classList.add('downloading');
+            document.getElementById(`cncl-${id}`).style.display = 'inline-block';
+            document.getElementById(`pbox-${id}`).style.display = 'block';
+        }
+        
+        if (typeof Android !== 'undefined' && Android.downloadFile) {
+            Android.downloadFile(app.download_url, app.name + ".apk", id);
+        } else {
+            window.open(app.download_url);
+            activeDownloads[id] = false;
+            fromModal ? resetModalToInitial() : resetUI(id);
+        }
     }
 
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-    function sendOrder() {
-        const n = document.getElementById('custName').value;
-        const p = document.getElementById('custPhone').value;
-        const a = document.getElementById('custAddr').value;
-        if(!n || !p || !a) return alert("সব তথ্য দিন!");
-
-        let itemsMsg = cart.map(i => "🔸 " + i.n + " (" + i.p + ")").join('\n');
-        let total = cart.reduce((acc, i) => acc + parseInt(i.p.replace(/[^0-9]/g, '')), 0);
-        let msg = `🛍️ *নতুন অর্ডার!* \n\n👤 ক্রেতা: ${n}\n📞 ফোন: ${p}\n🏠 ঠিকানা: ${a}\n\n📦 পণ্যসমূহ:\n${itemsMsg}\n\n💰 মোট: ৳${total}`;
-
-        fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${encodeURIComponent(msg)}&parse_mode=Markdown`)
-        .then(() => {
-            alert("অর্ডার সফল হয়েছে!");
-            cart = [];
-            document.getElementById('cart-num').innerText = '0';
-            closeModal('addressModal');
-        });
+    function cancelDownload(id) {
+        if (typeof Android !== 'undefined' && Android.cancelDownload) Android.cancelDownload(id);
+        activeDownloads[id] = false;
+        resetUI(id);
+        if(currentDetailApp && currentDetailApp.id === id) resetModalToInitial();
+        showToast("বাতিল করা হয়েছে");
     }
 
-    function searchProduct(val) {
-        const filtered = products.filter(i => i.n.toLowerCase().includes(val.toLowerCase()));
-        displayProducts(filtered);
+    window.updateProgress = function(appId, percent, status, filePath) {
+        const isModal = (modalTriggeredDownloadId === appId);
+        if(status === 'downloading') {
+            if(isModal) {
+                document.getElementById('detailProgressFill').style.width = percent + "%";
+                document.getElementById('detailPercentText').innerText = percent + "%";
+            } else {
+                const btn = document.getElementById(`btn-${appId}`);
+                if(btn) btn.innerText = percent + "%";
+                const pbar = document.getElementById(`pbar-${appId}`);
+                if(pbar) pbar.style.width = percent + "%";
+            }
+        } else if(status === 'complete') {
+            activeDownloads[appId] = false;
+            resetUI(appId);
+            if(isModal) { closeDetailModal(); modalTriggeredDownloadId = null; }
+            showInstallModal(appId, filePath);
+        } else if(status === 'error') {
+            activeDownloads[appId] = false;
+            resetUI(appId);
+            if(isModal) resetModalToInitial();
+            showToast("ডাউনলোড ব্যর্থ!");
+        }
+    };
+
+    function showInstallModal(id, path) {
+        const app = apps.find(a => a.id == id);
+        if(!app) return;
+        document.getElementById('modalAppName').innerText = app.name;
+        document.getElementById('modalIconBox').innerHTML = renderIconHtml(app.icon);
+        document.getElementById('installModal').style.display = 'flex';
+        document.getElementById('finalInstallBtn').onclick = function() {
+            if (typeof Android !== 'undefined' && Android.installApk) Android.installApk(path);
+            closeModal();
+        };
     }
 
-    function toggleTheme() {
-        document.body.hasAttribute('data-theme') ? document.body.removeAttribute('data-theme') : document.body.setAttribute('data-theme', 'dark');
+    function resetUI(id) {
+        const btn = document.getElementById(`btn-${id}`);
+        if(btn) { btn.innerText = "ইন্সটল"; btn.classList.remove('downloading'); }
+        if(document.getElementById(`cncl-${id}`)) document.getElementById(`cncl-${id}`).style.display = 'none';
+        if(document.getElementById(`pbox-${id}`)) document.getElementById(`pbox-${id}`).style.display = 'none';
     }
 
-    // শুরুতে পণ্য লোড
-    displayProducts(products);
+    function resetModalToInitial() {
+        document.getElementById('detailInitialButtons').style.display = 'flex';
+        document.getElementById('detailProgressArea').style.display = 'none';
+        document.getElementById('detailProgressFill').style.width = "0%";
+        document.getElementById('detailPercentText').innerText = "0%";
+    }
+
+    function closeDetailModal() { document.getElementById('detailModal').style.display = 'none'; currentDetailApp = null; }
+    function closeModal() { document.getElementById('installModal').style.display = 'none'; }
+    function filterCat(cat, el) {
+        document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+        if(el) el.classList.add('active');
+        renderApps(cat === 'all' ? apps : apps.filter(a => a.category === cat));
+    }
+    document.getElementById('searchInput').oninput = e => {
+        const val = e.target.value.toLowerCase();
+        renderApps(apps.filter(a => a.name.toLowerCase().includes(val)));
+    };
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg; t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+    
+    // Start Up
+    applySettings();
+    fetchApps();
 </script>
-
 </body>
 </html>
